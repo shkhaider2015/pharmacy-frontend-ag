@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import api from '../lib/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,13 +13,24 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setAuth('fake-jwt-token', { id: '1', name: 'Admin', email: email, role: 'admin' });
-      navigate('/dashboard');
+
+    try {
+      const response = await api.post('/auth/login', { email, password });
+
+      const token = response.data?.access_token || response.data?.token || response.data?.data?.access_token;
+      const user = response.data?.user || response.data?.data?.user;
+
+      if (token && user) {
+        setAuth(token, user);
+        navigate('/dashboard');
+      } else {
+        console.error('Invalid response format', response.data);
+      }
+    } catch (error) {
+      console.error('Login Error:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -35,24 +47,24 @@ export default function Login() {
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Email address</label>
-            <input 
-              type="email" 
-              className="input-field" 
-              placeholder="admin@pharmacy.com" 
+            <input
+              type="email"
+              className="input-field"
+              placeholder="admin@pharmacy.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required 
+              required
             />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.25rem', color: 'var(--text-secondary)' }}>Password</label>
-            <input 
-              type="password" 
-              className="input-field" 
-              placeholder="••••••••" 
+            <input
+              type="password"
+              className="input-field"
+              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required 
+              required
             />
           </div>
 
@@ -64,9 +76,9 @@ export default function Login() {
             <a href="#" style={{ color: 'var(--accent-primary)' }}>Forgot password?</a>
           </div>
 
-          <button 
-            type="submit" 
-            className="btn btn-primary" 
+          <button
+            type="submit"
+            className="btn btn-primary"
             style={{ padding: '0.75rem', fontSize: '1rem', marginTop: '0.5rem' }}
             disabled={loading}
           >

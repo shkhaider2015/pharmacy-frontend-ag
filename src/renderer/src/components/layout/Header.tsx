@@ -1,8 +1,10 @@
 import { Bell, Search, User } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 
 export default function Header() {
   const location = useLocation();
+  const user = useAuthStore(state => state.user);
   const pathParts = location.pathname.split('/').filter(Boolean);
   const title = pathParts.length > 0 
     ? pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1) 
@@ -47,8 +49,8 @@ export default function Header() {
             <User size={18} color="white" />
           </div>
           <div>
-            <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>Admin User</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Administrator</div>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user?.name || 'Admin User'}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.role || 'Administrator'}</div>
           </div>
         </div>
       </div>

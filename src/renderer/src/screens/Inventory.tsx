@@ -1,32 +1,21 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
 import { AlertCircle, CheckCircle2, Clock } from 'lucide-react';
-
-interface InventoryItem {
-  id: string;
-  productName: string;
-  batchNumber: string;
-  stock: number;
-  expiryDate: string;
-  status: 'good' | 'near-expiry' | 'expired';
-}
-
-const mockData: InventoryItem[] = [
-  { id: '1', productName: 'Paracetamol 500mg', batchNumber: 'B202301', stock: 500, expiryDate: '2025-12-01', status: 'good' },
-  { id: '2', productName: 'Amoxicillin 250mg', batchNumber: 'B202209', stock: 120, expiryDate: '2024-05-15', status: 'near-expiry' },
-  { id: '3', productName: 'Ibuprofen 400mg', batchNumber: 'B202111', stock: 45, expiryDate: '2023-11-20', status: 'expired' },
-];
+import { useInventory, InventoryItem } from '../lib/queries/inventory';
 
 export default function Inventory() {
   const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const { data, isLoading, isError, error } = useInventory(page, limit);
 
   const columns: TableColumn<InventoryItem>[] = [
     { header: 'Product', accessorKey: 'productName' },
     { header: 'Batch', accessorKey: 'batchNumber' },
     { header: 'Stock', accessorKey: 'stock' },
     { header: 'Expiry Date', accessorKey: 'expiryDate' },
-    { 
-      header: 'Status', 
+    {
+      header: 'Status',
       cell: (item) => {
         let color = 'var(--text-secondary)';
         let Icon = CheckCircle2;
@@ -50,7 +39,7 @@ export default function Inventory() {
             {label}
           </div>
         );
-      } 
+      }
     }
   ];
 
@@ -60,12 +49,17 @@ export default function Inventory() {
         <h2 style={{ fontSize: '1.25rem' }}>Inventory Status (FEFO)</h2>
       </div>
 
-      <GenericTable 
-        data={mockData} 
-        columns={columns} 
-        meta={{ page, limit: 10, total: 3, totalPages: 1 }}
-        onPageChange={setPage}
-      />
+      {isError ? (
+        <div style={{ color: 'var(--accent-danger)' }}>Failed to load inventory: {(error as Error)?.message}</div>
+      ) : (
+        <GenericTable
+          data={data?.data || []}
+          columns={columns}
+          meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
+          onPageChange={setPage}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 }

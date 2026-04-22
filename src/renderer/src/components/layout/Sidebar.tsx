@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   ShoppingBag, 
   LayoutDashboard, 
@@ -8,8 +8,16 @@ import {
   Truck, 
   LogOut 
 } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 export default function Sidebar() {
+  const logout = useAuthStore(state => state.logout);
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/login');
+  };
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Inventory', icon: PackageSearch, path: '/inventory' },
@@ -66,7 +74,7 @@ export default function Sidebar() {
       </nav>
 
       <div style={{ padding: '1.5rem', borderTop: '1px solid var(--border-light)' }}>
-        <button className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--accent-danger)' }}>
+        <button onClick={handleSignOut} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--accent-danger)' }}>
           <LogOut size={20} />
           <span>Sign Out</span>
         </button>

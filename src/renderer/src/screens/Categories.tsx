@@ -1,21 +1,13 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-
-interface Category {
-  id: string;
-  name: string;
-  description: string;
-}
-
-const mockData: Category[] = [
-  { id: '1', name: 'Antibiotics', description: 'Medicines that destroy or slow down the growth of bacteria.' },
-  { id: '2', name: 'Painkillers', description: 'Drugs used to relieve pain.' },
-  { id: '3', name: 'Vitamins', description: 'Organic molecules that are an essential micronutrient.' },
-];
+import { useCategories, Category } from '../lib/queries/categories';
 
 export default function Categories() {
   const [page, setPage] = useState(1);
+  const limit = 10;
+  
+  const { data, isLoading, isError, error } = useCategories(page, limit);
 
   const columns: TableColumn<Category>[] = [
     { header: 'Name', accessorKey: 'name' },
@@ -41,12 +33,17 @@ export default function Categories() {
         </button>
       </div>
 
-      <GenericTable 
-        data={mockData} 
-        columns={columns} 
-        meta={{ page, limit: 10, total: 3, totalPages: 1 }}
-        onPageChange={setPage}
-      />
+      {isError ? (
+        <div style={{ color: 'var(--accent-danger)' }}>Failed to load categories: {(error as Error)?.message}</div>
+      ) : (
+        <GenericTable 
+          data={data?.data || []} 
+          columns={columns} 
+          meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
+          onPageChange={setPage}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 }
