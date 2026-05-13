@@ -47,19 +47,19 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Revenue Overview</h3>
-          <div style={{ height: '300px' }}>
+          <div style={{ height: '600px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data?.salesData || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} padding={{ left: 10, right: 10 }} />
                 <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: 'var(--bg-glass-hover)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
@@ -68,24 +68,47 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
         </div>
-
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expiring Soon</h3>
-          {data?.expiringSoon?.length === 0 ? (
-             <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No items expiring soon.</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {data?.expiringSoon?.map((item) => (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid var(--accent-warning)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.productName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Batch {item.batchNumber} • {item.stock} units</div>
+        <div style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '700px' }} >
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expiring Soon</h3>
+            {data?.expiringSoon?.length === 0 ? (
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No items expiring soon.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {data?.expiringSoon?.map((item) => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid var(--accent-warning)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.productName}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Batch {item.batchNumber} • {item.stock} units</div>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-warning)', fontWeight: 600 }}>In {item.daysRemaining} days</div>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--accent-warning)', fontWeight: 600 }}>In {item.daysRemaining} days</div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem' }} >
+            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expired</h3>
+            {/* Red background style instad of yellow*/}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {data?.expired?.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No items expired.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {data?.expired?.map((item) => (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderLeft: '4px solid var(--accent-danger)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
+                      <div>
+                        <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.productName}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Batch {item.batchNumber} • {item.stock} units</div>
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--accent-danger)', fontWeight: 600 }}>Expired</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
-          )}
+
+          </div>
         </div>
       </div>
     </div>

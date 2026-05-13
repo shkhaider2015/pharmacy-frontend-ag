@@ -1,17 +1,19 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  ShoppingBag, 
-  LayoutDashboard, 
-  Users, 
-  PackageSearch, 
-  Tags, 
-  Truck, 
-  LogOut 
+import {
+  ShoppingBag,
+  LayoutDashboard,
+  Users,
+  PackageSearch,
+  Tags,
+  Truck,
+  LogOut
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { Role } from '@renderer/constants/enums';
 
 export default function Sidebar() {
   const logout = useAuthStore(state => state.logout);
+  const user = useAuthStore(state => state.user);
   const navigate = useNavigate();
 
   const handleSignOut = () => {
@@ -20,20 +22,20 @@ export default function Sidebar() {
   };
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Inventory', icon: PackageSearch, path: '/inventory' },
+    ...(user?.role === Role.Admin ? [{ name: 'Inventory', icon: PackageSearch, path: '/inventory' }] : []),
     { name: 'Products', icon: ShoppingBag, path: '/products' },
     { name: 'Categories', icon: Tags, path: '/categories' },
     { name: 'Suppliers', icon: Truck, path: '/suppliers' },
     { name: 'Orders', icon: ShoppingBag, path: '/orders' },
-    { name: 'Users', icon: Users, path: '/users' },
+    ...(user?.role === Role.Admin ? [{ name: 'Users', icon: Users, path: '/users' }] : []),
   ];
 
   return (
-    <aside className="glass-panel" style={{ 
-      width: '260px', 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
+    <aside className="glass-panel" style={{
+      width: '260px',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
       borderRight: '1px solid var(--border-light)',
       borderRadius: '0', /* override glass-panel radius for sidebar */
       borderTop: 'none',

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { BaseResponse, PaginatedPayload } from '../api';
 import { Product } from './products';
 
@@ -26,9 +26,36 @@ export const useInventory = (page: number, limit: number = 10) => {
         ...data,
         data: data.data.map((item) => ({
           ...item,
-          productName: item.product.name
+          productName: item.product?.name || 'Unknown Product'
         }))
       };
+    }
+  });
+};
+
+export const useCreateInventoryBatch = () => {
+  return useMutation({
+    mutationFn: async (data: Partial<InventoryItem>) => {
+      const response = await api.post<BaseResponse<InventoryItem>>('/inventory', data);
+      return response.data.data;
+    }
+  });
+};
+
+export const useUpdateInventoryBatch = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InventoryItem> }) => {
+      const response = await api.put<BaseResponse<InventoryItem>>(`/inventory/${id}`, data);
+      return response.data.data;
+    }
+  });
+};
+
+export const useDeleteInventoryBatch = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete<BaseResponse<null>>(`/inventory/${id}`);
+      return response.data;
     }
   });
 };

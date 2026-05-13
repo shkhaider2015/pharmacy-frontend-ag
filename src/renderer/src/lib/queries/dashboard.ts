@@ -17,6 +17,13 @@ export interface DashboardStats {
     daysRemaining: number;
     stock: number;
   }[];
+  expired: {
+    id: string;
+    productName: string;
+    batchNumber: string;
+    daysRemaining: number;
+    stock: number;
+  }[];
 }
 
 export const useDashboardStats = () => {

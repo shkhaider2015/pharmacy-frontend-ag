@@ -12,7 +12,6 @@ import { useAuthStore } from './store/authStore';
 
 const ProtectedRoute = () => {
   const token = useAuthStore(state => state.token);
-  console.log("Token in app ", token)
   if (!token) {
     return <Navigate to="/login" replace />;
   }

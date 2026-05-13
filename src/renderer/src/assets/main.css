@@ -142,6 +142,22 @@ a:hover {
   transform: translateY(1px);
 }
 
+.btn-danger {
+  background-color: var(--accent-danger);
+  color: white;
+  box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.39);
+}
+
+.btn-danger:hover {
+  background-color: #dc2626; /* darker red */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.23);
+}
+
+.btn-danger:active {
+  transform: translateY(1px);
+}
+
 .btn-ghost {
   background-color: transparent;
   color: var(--text-secondary);
