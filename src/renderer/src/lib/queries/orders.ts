@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useInfiniteQuery, InfiniteData, QueryKey } from '@tanstack/react-query';
 import api, { BaseResponse, PaginatedPayload } from '../api';
+import { OrderType } from '@renderer/constants/enums';
 
 export interface OrderItem {
   id: string;
@@ -15,6 +16,7 @@ export interface Order {
   totalAmount: number;
   status: 'Pending' | 'Completed' | 'Cancelled';
   items: OrderItem[];
+  type: OrderType;
   createdAt?: string;
   updatedAt?: string;
 }

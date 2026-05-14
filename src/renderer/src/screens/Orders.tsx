@@ -41,8 +41,12 @@ export default function Orders() {
     if (order) {
       setEditingId(order.id);
       setFormData({
-        type: OrderType.Sales, // Or fetch from order if available
-        items: [{ productId: '', quantity: 1, pricePerUnit: 0 }] // Simplifying item edit to prevent extreme complexity without real data
+        type: order.type || OrderType.Sales, // Or fetch from order if available
+        items: [...order.items.map(i => ({
+          productId: i.product?.id || '',
+          quantity: i.quantity,
+          pricePerUnit: i.product?.price || 0
+        }))] // Simplifying item edit to prevent extreme complexity without real data
       });
     } else {
       setEditingId(null);
@@ -147,6 +151,10 @@ export default function Orders() {
     {
       header: 'Order #',
       cell: (item) => <span style={{ fontWeight: 600, color: 'var(--accent-primary)' }}>{item.id.slice(0, 8) + "..."}</span>
+    },
+    {
+      header: 'Order Type',
+      cell: (item) => <span style={{ fontWeight: 600 }} >{item.type}</span>
     },
     {
       header: 'Date',
