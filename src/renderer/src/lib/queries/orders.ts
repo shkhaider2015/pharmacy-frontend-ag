@@ -62,3 +62,21 @@ export const useDeleteOrder = () => {
     }
   });
 };
+
+export const useMarkAsCompleted = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.patch<BaseResponse<Order>>(`/orders/${id}/complete`);
+      return response.data.data;
+    }
+  });
+};
+
+export const useMarkAsCancelled = () => {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.patch<BaseResponse<Order>>(`/orders/${id}/cancel`);
+      return response.data.data;
+    }
+  });
+};

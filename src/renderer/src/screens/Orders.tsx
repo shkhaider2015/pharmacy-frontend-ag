@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
 import { Plus, Edit2, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { useOrders, Order, useCreateOrder, useUpdateOrder, useDeleteOrder } from '../lib/queries/orders';
+import { useOrders, Order, useCreateOrder, useUpdateOrder, useDeleteOrder, useMarkAsCompleted, useMarkAsCancelled } from '../lib/queries/orders';
 import { useProducts } from '../lib/queries/products';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -19,6 +19,8 @@ export default function Orders() {
   const createMutation = useCreateOrder();
   const updateMutation = useUpdateOrder();
   const deleteMutation = useDeleteOrder();
+  const markAsCompletedMutation = useMarkAsCompleted();
+  const markAsCancelledMutation = useMarkAsCancelled();
   const queryClient = useQueryClient();
 
   // Modal states
@@ -138,9 +140,33 @@ export default function Orders() {
   };
 
   const updateStatus = async (id: string, status: OrderStatus) => {
+    switch (status) {
+      case OrderStatus.Completed:
+        await handleComplete(id);
+        break;
+      case OrderStatus.Cancelled:
+        await handleCancel(id);
+        break;
+      default:
+        toast.error('Invalid order status');
+        break;
+    }
+  };
+
+  const handleComplete = async (id: string) => {
     try {
-      await updateMutation.mutateAsync({ id, data: { status: status } });
-      toast.success('Order status updated successfully');
+      await markAsCompletedMutation.mutateAsync(id);
+      toast.success('Order marked as completed successfully');
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancel = async (id: string) => {
+    try {
+      await markAsCancelledMutation.mutateAsync(id);
+      toast.success('Order marked as cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (err) {
       console.error(err);
@@ -287,8 +313,8 @@ export default function Orders() {
                 value={formData.type}
                 onChange={e => { setFormData({ ...formData, type: e.target.value as OrderType }); setIsDirty(true); }}
               >
-                <option value={OrderType.Sales}>Outbound (Stock Out)</option>
-                <option value={OrderType.Purchase}>Inbound (Stock In)</option>
+                <option value={OrderType.Sales}>Sales (Stock Out)</option>
+                <option value={OrderType.Purchase}>Purchase (Stock In)</option>
               </select>
             </div>
           </div>
@@ -301,7 +327,7 @@ export default function Orders() {
               </button>
             </div>
 
-            {formData.items.map((item, index) => (
+            {/* {formData.items.map((item, index) => (
               <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
                 <div style={{ flex: 2 }}>
                   <select
@@ -337,6 +363,81 @@ export default function Orders() {
                     value={item.pricePerUnit}
                     onChange={e => updateItem(index, 'pricePerUnit', e.target.value)}
                   />
+                </div>
+                {formData.items.length > 1 && (
+                  <button type="button" className="btn btn-ghost" style={{ padding: '0.5rem', color: 'var(--accent-danger)' }} onClick={() => removeItem(index)}>
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            ))} */}
+
+            {formData.items.map((item, index) => (
+              <div key={index} style={{ display: 'flex', marginBottom: '1rem', alignItems: 'flex-start', justifyContent: 'space-between', border: "1px solid var(--border-light)", padding: "0.6rem" }}>
+                <div>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.3rem', alignItems: 'flex-start' }} >
+                    <div style={{ flex: 2 }}>
+                      <select
+                        required
+                        className="input-field"
+                        value={item.productId}
+                        onChange={e => selectItem(e.target.value, index)}
+                      >
+                        <option value="">Select Product...</option>
+                        {prodData?.data?.map((p: any) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        placeholder="Qty"
+                        className="input-field"
+                        value={item.quantity}
+                        onChange={e => updateItem(index, 'quantity', e.target.value)}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <input
+                        type="number"
+                        required
+                        step="0.01"
+                        placeholder="Price"
+                        className="input-field"
+                        value={item.pricePerUnit}
+                        onChange={e => updateItem(index, 'pricePerUnit', e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {
+                    formData.type === OrderType.Purchase && <div style={{ display: 'flex', alignItems: "flex-start" }}>
+                      <div style={{ flex: 1 }}>
+                        <input
+                          type="date"
+                          required
+                          step="0.01"
+                          placeholder="Manufacturing Date"
+                          className="input-field"
+                          value={undefined}
+                          onChange={e => { }}
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <input
+                          type="date"
+                          required
+                          step="0.01"
+                          placeholder="Expiry Date"
+                          className="input-field"
+                          value={undefined}
+                          onChange={e => { }}
+                        />
+                      </div>
+                    </div>
+                  }
                 </div>
                 {formData.items.length > 1 && (
                   <button type="button" className="btn btn-ghost" style={{ padding: '0.5rem', color: 'var(--accent-danger)' }} onClick={() => removeItem(index)}>
