@@ -6,11 +6,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { useAuthStore } from '@renderer/store/authStore';
+import { Role, UserStatus } from '@renderer/constants/enums';
 
 export default function Users() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useUsers(page, limit);
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
@@ -26,8 +29,8 @@ export default function Users() {
     name: '',
     email: '',
     password: '',
-    role: 'Staff',
-    status: 'active'
+    role: Role.Staff,
+    status: UserStatus.Inactive
   });
   const [isDirty, setIsDirty] = useState(false);
 
@@ -45,12 +48,12 @@ export default function Users() {
         name: parts[0] || '',
         email: user.email || '',
         password: '', // default empty on edit
-        role: user.role || 'Staff',
-        status: user.status || 'active'
+        role: user.role || Role.Staff,
+        status: user.status || UserStatus.Inactive
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', email: '', password: '', role: 'Staff', status: 'active' });
+      setFormData({ name: '', email: '', password: '', role: Role.Staff, status: UserStatus.Inactive });
     }
     setIsDirty(false);
     setIsFormOpen(true);
@@ -145,6 +148,7 @@ export default function Users() {
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem' }}
+            disabled={userRole === Role.Manager && item.role === Role.Staff}
             onClick={() => handleOpenForm(item)}
           >
             <Edit2 size={16} />
@@ -152,6 +156,7 @@ export default function Users() {
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
+            disabled={userRole === Role.Manager && item.role === Role.Staff}
             onClick={() => {
               setDeletingId(item.id);
               setIsDeleteModalOpen(true);
@@ -168,10 +173,14 @@ export default function Users() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Manage Users</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          Add User
-        </button>
+        {
+          userRole === Role.Manager || userRole === Role.Admin && (
+            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} />
+              Add User
+            </button>
+          )
+        }
       </div>
 
       {isError ? (
@@ -234,10 +243,11 @@ export default function Users() {
               <select
                 className="input-field"
                 value={formData.role}
-                onChange={e => { setFormData({ ...formData, role: e.target.value }); setIsDirty(true); }}
+                onChange={e => { setFormData({ ...formData, role: e.target.value as Role }); setIsDirty(true); }}
               >
-                <option value="Staff">Staff</option>
-                <option value="Admin">Admin</option>
+                <option value={Role.Staff}>{Role.Staff}</option>
+                <option value={Role.Manager}>{Role.Manager}</option>
+                <option value={Role.Admin}>{Role.Admin}</option>
               </select>
             </div>
             <div style={{ flex: 1 }}>
@@ -245,10 +255,10 @@ export default function Users() {
               <select
                 className="input-field"
                 value={formData.status}
-                onChange={e => { setFormData({ ...formData, status: e.target.value }); setIsDirty(true); }}
+                onChange={e => { setFormData({ ...formData, status: e.target.value as UserStatus }); setIsDirty(true); }}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value={UserStatus.Active}>Active</option>
+                <option value={UserStatus.Inactive}>Inactive</option>
               </select>
             </div>
           </div>

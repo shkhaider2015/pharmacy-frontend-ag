@@ -21,7 +21,7 @@ export default function Sidebar() {
     navigate('/login');
   };
   const menuItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    ...(user?.role === Role.Admin || user?.role === Role.Manager ? [{ name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }] : []),
     ...(user?.role === Role.Admin ? [{ name: 'Inventory', icon: PackageSearch, path: '/inventory' }] : []),
     { name: 'Products', icon: ShoppingBag, path: '/products' },
     { name: 'Categories', icon: Tags, path: '/categories' },

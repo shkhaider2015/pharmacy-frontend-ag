@@ -1,12 +1,13 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { BaseResponse, PaginatedPayload } from '../api';
+import { Role, UserStatus } from '@renderer/constants/enums';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Manager' | 'Staff';
-  status: 'active' | 'inactive';
+  role: Role;
+  status: UserStatus;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -35,7 +36,7 @@ export const useCreateUser = () => {
 export const useUpdateUser = () => {
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<User> }) => {
-      const response = await api.put<BaseResponse<User>>(`/users/${id}`, data);
+      const response = await api.patch<BaseResponse<User>>(`/users/${id}`, data);
       return response.data.data;
     }
   });

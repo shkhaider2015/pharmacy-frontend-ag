@@ -8,11 +8,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { useAuthStore } from '@renderer/store/authStore';
+import { Role } from '@renderer/constants/enums';
 
 export default function Inventory() {
   const [page, setPage] = useState(1);
   const limit = 10;
-  
+
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useInventory(page, limit);
   const { data: prodData } = useProducts(1, 100);
   const { data: supData } = useSuppliers(1, 100);
@@ -25,18 +28,18 @@ export default function Inventory() {
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+
   // Data states
-  const [formData, setFormData] = useState({ 
-    productId: '', 
-    quantity: 0, 
-    manufacturingDate: '', 
+  const [formData, setFormData] = useState({
+    productId: '',
+    quantity: 0,
+    manufacturingDate: '',
     expiryDate: '',
     batchNumber: '',
     supplierId: ''
   });
   const [isDirty, setIsDirty] = useState(false);
-  
+
   // Discard & Delete states
   const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -45,10 +48,10 @@ export default function Inventory() {
   const handleOpenForm = (item?: InventoryItem) => {
     if (item) {
       setEditingId(item.id);
-      setFormData({ 
-        productId: item.product?.id || '', 
-        quantity: item.stock || 0, 
-        manufacturingDate: '', 
+      setFormData({
+        productId: item.product?.id || '',
+        quantity: item.quantity || 0,
+        manufacturingDate: '',
         expiryDate: item.expiryDate?.split('T')[0] || '',
         batchNumber: item.batchNumber || '',
         supplierId: ''
@@ -110,10 +113,17 @@ export default function Inventory() {
   const columns: TableColumn<InventoryItem>[] = [
     { header: 'Product', accessorKey: 'productName' },
     { header: 'Batch', accessorKey: 'batchNumber' },
-    { header: 'Stock', accessorKey: 'stock' },
-    { 
-      header: 'Expiry Date', 
-      cell: (item) => item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : 'N/A' 
+    {
+      header: 'Stock',
+      cell: (item) => item.quantity ? Number(item.quantity).toFixed(0) : 'N/A'
+    },
+    {
+      header: 'Expiry Date',
+      cell: (item) => item.expiryDate ? new Date(item.expiryDate).toLocaleDateString() : 'N/A'
+    },
+    {
+      header: 'Manufacturing Date',
+      cell: (item) => item.manufacturingDate ? new Date(item.manufacturingDate).toLocaleDateString() : 'N/A'
     },
     {
       header: 'Status',
@@ -122,11 +132,11 @@ export default function Inventory() {
         let Icon = CheckCircle2;
         let label = 'Good';
 
-        if (item.status === 'expired') {
+        if (item.expiryDate < new Date().toISOString()) {
           color = 'var(--accent-danger)';
           Icon = AlertCircle;
           label = 'Expired';
-        } else if (item.status === 'near-expiry') {
+        } else if (item.expiryDate < new Date().toISOString() + 30) {
           color = 'var(--accent-warning)';
           Icon = Clock;
           label = 'Expiring Soon';
@@ -142,19 +152,19 @@ export default function Inventory() {
         );
       }
     },
-    { 
-      header: 'Actions', 
+    {
+      header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            className="btn btn-ghost" 
+          <button
+            className="btn btn-ghost"
             style={{ padding: '0.5rem' }}
             onClick={() => handleOpenForm(item)}
           >
             <Edit2 size={16} />
           </button>
-          <button 
-            className="btn btn-ghost" 
+          <button
+            className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
             onClick={() => {
               setDeletingId(item.id);
@@ -164,7 +174,7 @@ export default function Inventory() {
             <Trash2 size={16} />
           </button>
         </div>
-      ) 
+      )
     }
   ];
 
@@ -172,36 +182,40 @@ export default function Inventory() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Inventory Status (FEFO)</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          Add Batch
-        </button>
+        {
+          userRole === Role.Manager || userRole === Role.Admin && (
+            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} />
+              Add Batch
+            </button>
+          )
+        }
       </div>
 
       {isError ? (
         <div style={{ color: 'var(--accent-danger)' }}>Failed to load inventory: {(error as Error)?.message}</div>
       ) : (
-        <GenericTable 
-          data={data?.data || []} 
-          columns={columns} 
+        <GenericTable
+          data={data?.data || []}
+          columns={columns}
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}
           isLoading={isLoading}
         />
       )}
 
-      <Modal 
-        isOpen={isFormOpen} 
-        onClose={handleCloseForm} 
+      <Modal
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
         title={editingId ? 'Edit Inventory Batch' : 'Add Inventory Batch'}
       >
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div style={{ flex: 2 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Product <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
-              <select 
+              <select
                 required
-                className="input-field" 
+                className="input-field"
                 value={formData.productId}
                 onChange={e => { setFormData({ ...formData, productId: e.target.value }); setIsDirty(true); }}
               >
@@ -213,30 +227,30 @@ export default function Inventory() {
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Quantity <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 required
-                className="input-field" 
+                className="input-field"
                 value={formData.quantity}
                 onChange={e => { setFormData({ ...formData, quantity: Number(e.target.value) }); setIsDirty(true); }}
               />
             </div>
           </div>
-          
+
           <div style={{ display: 'flex', gap: '1rem' }}>
-             <div style={{ flex: 1 }}>
+            <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Batch Number</label>
-              <input 
-                type="text" 
-                className="input-field" 
+              <input
+                type="text"
+                className="input-field"
                 value={formData.batchNumber}
                 onChange={e => { setFormData({ ...formData, batchNumber: e.target.value }); setIsDirty(true); }}
               />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Supplier</label>
-              <select 
-                className="input-field" 
+              <select
+                className="input-field"
                 value={formData.supplierId}
                 onChange={e => { setFormData({ ...formData, supplierId: e.target.value }); setIsDirty(true); }}
               >
@@ -251,26 +265,26 @@ export default function Inventory() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Manufacturing Date <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 required
-                className="input-field" 
+                className="input-field"
                 value={formData.manufacturingDate}
                 onChange={e => { setFormData({ ...formData, manufacturingDate: e.target.value }); setIsDirty(true); }}
               />
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Expiry Date <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 required
-                className="input-field" 
+                className="input-field"
                 value={formData.expiryDate}
                 onChange={e => { setFormData({ ...formData, expiryDate: e.target.value }); setIsDirty(true); }}
               />
             </div>
           </div>
-          
+
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
             <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Go Back</button>
             <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || updateMutation.isPending}>

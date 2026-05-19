@@ -8,11 +8,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { useAuthStore } from '@renderer/store/authStore';
+import { Role } from '@renderer/constants/enums';
 
 export default function Products() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useProducts(page, limit);
   const { data: catData } = useCategories(1, 100);
   const { data: supData } = useSuppliers(1, 100);
@@ -164,10 +167,14 @@ export default function Products() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Manage Products</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          Add Product
-        </button>
+        {
+          userRole === Role.Manager || userRole === Role.Admin && (
+            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} />
+              Add Product
+            </button>
+          )
+        }
       </div>
 
       {isError ? (

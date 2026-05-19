@@ -7,9 +7,9 @@ export interface InventoryItem {
   productName: string;
   product: Product; // May need mapping depending on actual backend response, e.g., product.name
   batchNumber: string;
-  stock: number;
+  quantity: number;
   expiryDate: string;
-  status: 'good' | 'near-expiry' | 'expired';
+  manufacturingDate: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -22,11 +22,12 @@ export const useInventory = (page: number, limit: number = 10) => {
         params: { page, limit }
       });
       const data = response.data.data;
+      console.log("Inventory Data: ", data);
       return {
         ...data,
         data: data.data.map((item) => ({
           ...item,
-          productName: item.product?.name || 'Unknown Product'
+          productName: item.product?.name || 'Unknown Product',
         }))
       };
     }

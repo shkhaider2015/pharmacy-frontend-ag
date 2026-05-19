@@ -6,12 +6,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { SupplierStatus } from '@renderer/constants/enums';
+import { Role, SupplierStatus } from '@renderer/constants/enums';
+import { useAuthStore } from '@renderer/store/authStore';
 
 export default function Suppliers() {
   const [page, setPage] = useState(1);
   const limit = 10;
 
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useSuppliers(page, limit);
   const createMutation = useCreateSupplier();
   const updateMutation = useUpdateSupplier();
@@ -145,10 +147,14 @@ export default function Suppliers() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Manage Suppliers</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          Add Supplier
-        </button>
+        {
+          userRole === Role.Manager || userRole === Role.Admin && (
+            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} />
+              Add Supplier
+            </button>
+          )
+        }
       </div>
 
       {isError ? (

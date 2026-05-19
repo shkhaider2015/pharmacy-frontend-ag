@@ -8,6 +8,8 @@ import Suppliers from './screens/Suppliers';
 import Products from './screens/Products';
 import Users from './screens/Users';
 import Orders from './screens/Orders';
+import NewSaleOrder from './screens/NewSaleOrder';
+import NewPurchaseOrder from './screens/NewPurchaseOrder';
 import { useAuthStore } from './store/authStore';
 
 const ProtectedRoute = () => {
@@ -44,6 +46,8 @@ function App() {
             <Route path="products" element={<Products />} />
             <Route path="users" element={<Users />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="orders/new-sale" element={<NewSaleOrder />} />
+            <Route path="orders/new-purchase" element={<NewPurchaseOrder />} />
           </Route>
         </Route>
       </Routes>

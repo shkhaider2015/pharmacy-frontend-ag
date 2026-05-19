@@ -53,7 +53,6 @@ api.interceptors.response.use(
     // Show a toast message for visually indicating network failure
     const errorMsg = error.response?.data?.message || error.message || 'An unexpected error occurred';
     toast.error(errorMsg);
-
     if (error.response && error.response.status === 401) {
       // Clear session on 401 Unauthorized
       useAuthStore.getState().logout();

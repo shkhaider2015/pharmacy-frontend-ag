@@ -1,132 +1,29 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { useOrders, Order, useCreateOrder, useUpdateOrder, useDeleteOrder, useMarkAsCompleted, useMarkAsCancelled } from '../lib/queries/orders';
-import { useProducts } from '../lib/queries/products';
+import { Plus, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { useOrders, Order, useDeleteOrder, useMarkAsCompleted, useMarkAsCancelled } from '../lib/queries/orders';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { OrderStatus, OrderType } from '@renderer/constants/enums';
+import { OrderStatus, Role } from '@renderer/constants/enums';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@renderer/store/authStore';
 
 export default function Orders() {
   const [page, setPage] = useState(1);
   const limit = 10;
+  const navigate = useNavigate();
 
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useOrders(page, limit);
-  const { data: prodData } = useProducts(1, 100);
 
-  const createMutation = useCreateOrder();
-  const updateMutation = useUpdateOrder();
   const deleteMutation = useDeleteOrder();
   const markAsCompletedMutation = useMarkAsCompleted();
   const markAsCancelledMutation = useMarkAsCancelled();
   const queryClient = useQueryClient();
 
-  // Modal states
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  // Data states
-  const [formData, setFormData] = useState({
-    type: OrderType.Sales,
-    items: [{ productId: '', quantity: 1, pricePerUnit: 0 }]
-  });
-  const [isDirty, setIsDirty] = useState(false);
-
-  // Discard & Delete states
-  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const handleOpenForm = (order?: Order) => {
-    if (order) {
-      setEditingId(order.id);
-      setFormData({
-        type: order.type || OrderType.Sales, // Or fetch from order if available
-        items: [...order.items.map(i => ({
-          productId: i.product?.id || '',
-          quantity: i.quantity,
-          pricePerUnit: i.product?.price || 0
-        }))] // Simplifying item edit to prevent extreme complexity without real data
-      });
-    } else {
-      setEditingId(null);
-      setFormData({ type: OrderType.Sales, items: [{ productId: '', quantity: 1, pricePerUnit: 0 }] });
-    }
-    setIsDirty(false);
-    setIsFormOpen(true);
-  };
-
-  const handleCloseForm = () => {
-    if (isDirty) {
-      setIsDiscardModalOpen(true);
-    } else {
-      setIsFormOpen(false);
-    }
-  };
-
-  const addItem = () => {
-    setFormData({
-      ...formData,
-      items: [...formData.items, { productId: '', quantity: 1, pricePerUnit: 0 }]
-    });
-    setIsDirty(true);
-  };
-
-  const updateItem = (index: number, field: string, value: any) => {
-    const newItems: any[] = [...formData.items];
-    newItems[index][field] = value;
-    setFormData({ ...formData, items: newItems });
-    setIsDirty(true);
-  };
-
-  const removeItem = (index: number) => {
-    const newItems = formData.items.filter((_, i) => i !== index);
-    setFormData({ ...formData, items: newItems });
-    setIsDirty(true);
-  };
-
-  const selectItem = (id: string, index: number) => {
-    if (!prodData) return;
-    const item = prodData.data.find((item) => item.id === id);
-    if (item) {
-      const newItems: any[] = [...formData.items];
-      newItems[index].productId = item.id;
-      newItems[index].pricePerUnit = item.price;
-      setFormData({ ...formData, items: newItems });
-      setIsDirty(true);
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const payload: any = {
-        type: formData.type,
-        items: formData.items.map(i => ({
-          ...i,
-          quantity: Number(i.quantity),
-          pricePerUnit: Number(i.pricePerUnit)
-        }))
-      };
-
-      console.log(payload);
-
-      if (editingId) {
-        await updateMutation.mutateAsync({ id: editingId, data: payload });
-        toast.success('Order updated successfully');
-      } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Order created successfully');
-      }
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      setIsFormOpen(false);
-      setIsDirty(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const handleDelete = async () => {
     if (!deletingId) return;
@@ -197,39 +94,37 @@ export default function Orders() {
     {
       header: 'Status',
       cell: (item) => {
-        let color, Icon, label;
+        let color, Icon;
         switch (item.status) {
           case 'Completed':
             color = 'var(--accent-success)';
             Icon = CheckCircle2;
-            label = 'Completed';
             break;
           case 'Pending':
             color = 'var(--accent-warning)';
             Icon = Clock;
-            label = 'Pending';
             break;
           case 'Cancelled':
             color = 'var(--accent-danger)';
             Icon = XCircle;
-            label = 'Cancelled';
             break;
           default:
             color = 'var(--text-secondary)';
             Icon = Clock;
-            label = 'Unknown';
         }
-        // make it select for status
+
         const statusOptions = Object.values(OrderStatus).map((status) => ({
           value: status,
           label: status,
         }));
+
         const StatusSelect = () => {
           return (
             <select
               value={item.status}
               onChange={(e) => updateStatus(item.id, e.target.value as OrderStatus)}
               style={{ color, cursor: 'pointer', backgroundColor: 'var(--bg-card)', padding: '0.5rem', border: 'none', outline: 'none' }}
+              disabled={item.status !== OrderStatus.Pending} // Usually only Pending orders can change status
             >
               {statusOptions.map((option) => {
                 return <option key={option.value} value={option.value} style={{ color: 'var(--text-primary)' }}>
@@ -239,25 +134,19 @@ export default function Orders() {
             </select>
           );
         };
-        return <>
+
+        return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Icon size={16} color={color} />
             <StatusSelect />
           </div>
-        </>;
+        );
       }
     },
     {
       header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-ghost"
-            style={{ padding: '0.5rem' }}
-            onClick={() => handleOpenForm(item)}
-          >
-            <Edit2 size={16} />
-          </button>
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
@@ -273,17 +162,24 @@ export default function Orders() {
     }
   ];
 
-  console.log(data);
-  console.log("prod data ", prodData);
-
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Manage Orders</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          New Order
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn btn-primary" onClick={() => navigate('/orders/new-sale')}>
+            <Plus size={18} />
+            New Sale
+          </button>
+          {
+            userRole === Role.Manager || userRole === Role.Admin && (
+              <button className="btn btn-primary" onClick={() => navigate('/orders/new-purchase')}>
+                <Plus size={18} />
+                New Purchase
+              </button>
+            )
+          }
+        </div>
       </div>
 
       {isError ? (
@@ -297,208 +193,6 @@ export default function Orders() {
           isLoading={isLoading}
         />
       )}
-
-      <Modal
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        title={editingId ? 'Edit Order' : 'New Order'}
-        maxWidth="800px"
-      >
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Order Type</label>
-              <select
-                className="input-field"
-                value={formData.type}
-                onChange={e => { setFormData({ ...formData, type: e.target.value as OrderType }); setIsDirty(true); }}
-              >
-                <option value={OrderType.Sales}>Sales (Stock Out)</option>
-                <option value={OrderType.Purchase}>Purchase (Stock In)</option>
-              </select>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <label style={{ fontSize: '0.875rem', fontWeight: 600 }}>Order Items</label>
-              <button type="button" className="btn btn-ghost" style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }} onClick={addItem}>
-                + Add Item
-              </button>
-            </div>
-
-            {/* {formData.items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
-                <div style={{ flex: 2 }}>
-                  <select
-                    required
-                    className="input-field"
-                    value={item.productId}
-                    onChange={e => selectItem(e.target.value, index)}
-                  >
-                    <option value="">Select Product...</option>
-                    {prodData?.data?.map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="Qty"
-                    className="input-field"
-                    value={item.quantity}
-                    onChange={e => updateItem(index, 'quantity', e.target.value)}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="number"
-                    required
-                    step="0.01"
-                    placeholder="Price"
-                    className="input-field"
-                    value={item.pricePerUnit}
-                    onChange={e => updateItem(index, 'pricePerUnit', e.target.value)}
-                  />
-                </div>
-                {formData.items.length > 1 && (
-                  <button type="button" className="btn btn-ghost" style={{ padding: '0.5rem', color: 'var(--accent-danger)' }} onClick={() => removeItem(index)}>
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ))} */}
-
-            {formData.items.map((item, index) => (
-              <div key={index} style={{ display: 'flex', marginBottom: '1rem', alignItems: 'flex-start', justifyContent: 'space-between', border: "1px solid var(--border-light)", padding: "0.6rem" }}>
-                <div>
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.3rem', alignItems: 'flex-start' }} >
-                    <div style={{ flex: 2 }}>
-                      <select
-                        required
-                        className="input-field"
-                        value={item.productId}
-                        onChange={e => selectItem(e.target.value, index)}
-                      >
-                        <option value="">Select Product...</option>
-                        {prodData?.data?.map((p: any) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <input
-                        type="number"
-                        required
-                        min="1"
-                        placeholder="Qty"
-                        className="input-field"
-                        value={item.quantity}
-                        onChange={e => updateItem(index, 'quantity', e.target.value)}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <input
-                        type="number"
-                        required
-                        step="0.01"
-                        placeholder="Price"
-                        className="input-field"
-                        value={item.pricePerUnit}
-                        onChange={e => updateItem(index, 'pricePerUnit', e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  {
-                    formData.type === OrderType.Purchase && <div style={{ display: 'flex', alignItems: "flex-start" }}>
-                      <div style={{ flex: 1 }}>
-                        <input
-                          type="date"
-                          required
-                          step="0.01"
-                          placeholder="Manufacturing Date"
-                          className="input-field"
-                          value={undefined}
-                          onChange={e => { }}
-                        />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <input
-                          type="date"
-                          required
-                          step="0.01"
-                          placeholder="Expiry Date"
-                          className="input-field"
-                          value={undefined}
-                          onChange={e => { }}
-                        />
-                      </div>
-                    </div>
-                  }
-                </div>
-                {formData.items.length > 1 && (
-                  <button type="button" className="btn btn-ghost" style={{ padding: '0.5rem', color: 'var(--accent-danger)' }} onClick={() => removeItem(index)}>
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
-
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'flex-start' }}>
-              <div style={{ flex: 2 }}>
-
-              </div>
-              <div style={{ flex: 1, padding: '0.625rem 1rem' }}>
-                {formData.items.filter((item: any) => item.productId).length > 0 && "Total:"}
-              </div>
-              <div style={{ flex: 1 }}>
-                {/* Total Price */}
-                {
-                  formData.items.filter((item: any) => item.productId).length > 0 && (
-                    <input
-                      type="number"
-                      required={false}
-                      step="0.01"
-                      placeholder="Price"
-                      className="input-field"
-                      value={formData.items.reduce((acc, item) => acc + (item.pricePerUnit * item.quantity), 0).toFixed(2)}
-                      disabled
-                    />
-                  )
-                }
-              </div>
-              {
-                formData.items.length > 1 && (
-                  <div style={{ width: 'calc(0.5rem + 22px)' }} ></div>
-                )
-              }
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Go Back</button>
-            <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || updateMutation.isPending || formData.items.length === 0}>
-              {editingId ? 'Save Changes' : 'Create Order'}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      <ConfirmationModal
-        isOpen={isDiscardModalOpen}
-        onClose={() => setIsDiscardModalOpen(false)}
-        title="Discard Changes"
-        message="Are you sure you want to discard changes? Your unsaved data will be lost."
-        confirmLabel="Discard"
-        cancelLabel="Keep Editing"
-        onConfirm={() => {
-          setIsDirty(false);
-          setIsFormOpen(false);
-        }}
-      />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}

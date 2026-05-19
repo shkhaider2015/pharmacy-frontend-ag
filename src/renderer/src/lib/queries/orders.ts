@@ -8,6 +8,9 @@ export interface OrderItem {
   quantity: number;
   price: number;
   product?: { id: string; name: string; sku: string; price: number };
+  manufacturingDate?: string;
+  expiryDate?: string;
+  batchNumber?: string;
 }
 
 export interface Order {

@@ -6,11 +6,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { useAuthStore } from '@renderer/store/authStore';
+import { Role } from '@renderer/constants/enums';
 
 export default function Categories() {
   const [page, setPage] = useState(1);
   const limit = 10;
-  
+
+  const userRole = useAuthStore(state => state.user?.role);
   const { data, isLoading, isError, error } = useCategories(page, limit);
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
@@ -20,11 +23,11 @@ export default function Categories() {
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  
+
   // Data states
   const [formData, setFormData] = useState({ name: '', description: '' });
   const [isDirty, setIsDirty] = useState(false);
-  
+
   // Discard & Delete states
   const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -83,19 +86,19 @@ export default function Categories() {
   const columns: TableColumn<Category>[] = [
     { header: 'Name', accessorKey: 'name' },
     { header: 'Description', accessorKey: 'description' },
-    { 
-      header: 'Actions', 
+    {
+      header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            className="btn btn-ghost" 
+          <button
+            className="btn btn-ghost"
             style={{ padding: '0.5rem' }}
             onClick={() => handleOpenForm(item)}
           >
             <Edit2 size={16} />
           </button>
-          <button 
-            className="btn btn-ghost" 
+          <button
+            className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
             onClick={() => {
               setDeletingId(item.id);
@@ -105,7 +108,7 @@ export default function Categories() {
             <Trash2 size={16} />
           </button>
         </div>
-      ) 
+      )
     }
   ];
 
@@ -113,36 +116,40 @@ export default function Categories() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Manage Categories</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-          <Plus size={18} />
-          Add Category
-        </button>
+        {
+          userRole === Role.Manager || userRole === Role.Admin && (
+            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+              <Plus size={18} />
+              Add Category
+            </button>
+          )
+        }
       </div>
 
       {isError ? (
         <div style={{ color: 'var(--accent-danger)' }}>Failed to load categories: {(error as Error)?.message}</div>
       ) : (
-        <GenericTable 
-          data={data?.data || []} 
-          columns={columns} 
+        <GenericTable
+          data={data?.data || []}
+          columns={columns}
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}
           isLoading={isLoading}
         />
       )}
 
-      <Modal 
-        isOpen={isFormOpen} 
-        onClose={handleCloseForm} 
+      <Modal
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
         title={editingId ? 'Edit Category' : 'Add Category'}
       >
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Name <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               required
-              className="input-field" 
+              className="input-field"
               value={formData.name}
               onChange={e => {
                 setFormData({ ...formData, name: e.target.value });
@@ -152,8 +159,8 @@ export default function Categories() {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Description</label>
-            <textarea 
-              className="input-field" 
+            <textarea
+              className="input-field"
               style={{ minHeight: '100px', resize: 'vertical' }}
               value={formData.description}
               onChange={e => {

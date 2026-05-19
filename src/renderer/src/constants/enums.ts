@@ -4,6 +4,11 @@ export enum Role {
   Staff = 'Staff',
 }
 
+export enum UserStatus {
+  Active = 'active',
+  Inactive = 'inactive',
+}
+
 export enum OrderType {
   Purchase = 'Purchase',
   Sales = 'Sales',
