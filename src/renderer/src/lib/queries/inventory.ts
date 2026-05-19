@@ -14,11 +14,20 @@ export interface InventoryItem {
   updatedAt?: string;
 }
 
-export const useInventory = (page: number, limit: number = 10) => {
+export type InventoryFilter = 'all' | 'expired' | 'near-expiry';
+
+export const useInventory = (page: number, limit: number = 10, filter: InventoryFilter = 'all') => {
   return useQuery({
-    queryKey: ['inventory', page, limit],
+    queryKey: ['inventory', page, limit, filter],
     queryFn: async () => {
-      const response = await api.get<BaseResponse<PaginatedPayload<InventoryItem>>>('/inventory', {
+      let endpoint = '/inventory';
+      if (filter === 'expired') {
+        endpoint = '/inventory/expired';
+      } else if (filter === 'near-expiry') {
+        endpoint = '/inventory/near-expiry';
+      }
+
+      const response = await api.get<BaseResponse<PaginatedPayload<InventoryItem>>>(endpoint, {
         params: { page, limit }
       });
       const data = response.data.data;

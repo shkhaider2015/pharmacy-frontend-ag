@@ -1,8 +1,10 @@
 import { Package, Truck, AlertTriangle, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDashboardStats } from '../lib/queries/dashboard';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { data, isLoading, isError, error } = useDashboardStats();
 
   const stats = [
@@ -69,7 +71,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '700px' }} >
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s, background-color 0.2s' }} onClick={() => navigate('/inventory?filter=near-expiry')}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expiring Soon</h3>
             {data?.expiringSoon?.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>No items expiring soon.</div>
@@ -87,7 +89,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem' }} >
+          <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s, background-color 0.2s' }} onClick={() => navigate('/inventory?filter=expired')} >
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expired</h3>
             {/* Red background style instad of yellow*/}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

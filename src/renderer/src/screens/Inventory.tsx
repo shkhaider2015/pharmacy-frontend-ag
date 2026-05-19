@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import Modal from '../components/ui/Modal';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
+import { useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@renderer/store/authStore';
 import { Role } from '@renderer/constants/enums';
 
@@ -16,9 +17,13 @@ export default function Inventory() {
   const limit = 10;
 
   const userRole = useAuthStore(state => state.user?.role);
-  const { data, isLoading, isError, error } = useInventory(page, limit);
   const { data: prodData } = useProducts(1, 100);
   const { data: supData } = useSuppliers(1, 100);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filter = (searchParams.get('filter') as any) || 'all';
+
+  const { data, isLoading, isError, error } = useInventory(page, limit, filter);
 
   const createMutation = useCreateInventoryBatch();
   const updateMutation = useUpdateInventoryBatch();
@@ -182,14 +187,29 @@ export default function Inventory() {
     <div className="animate-fade-in">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem' }}>Inventory Status (FEFO)</h2>
-        {
-          userRole === Role.Manager || userRole === Role.Admin && (
-            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-              <Plus size={18} />
-              Add Batch
-            </button>
-          )
-        }
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <select
+            className="input-field"
+            style={{ width: 'auto', padding: '0.5rem 1rem' }}
+            value={filter}
+            onChange={(e) => {
+              setSearchParams(e.target.value === 'all' ? {} : { filter: e.target.value });
+              setPage(1);
+            }}
+          >
+            <option value="all">All Items</option>
+            <option value="near-expiry">Expiring Soon</option>
+            <option value="expired">Expired</option>
+          </select>
+          {
+            (userRole === Role.Manager || userRole === Role.Admin) && (
+              <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+                <Plus size={18} />
+                Add Batch
+              </button>
+            )
+          }
+        </div>
       </div>
 
       {isError ? (
