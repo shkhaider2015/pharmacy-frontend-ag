@@ -122,7 +122,11 @@ export default function Orders() {
           return (
             <select
               value={item.status}
-              onChange={(e) => updateStatus(item.id, e.target.value as OrderStatus)}
+              onChange={(e) => {
+                e.stopPropagation();
+                updateStatus(item.id, e.target.value as OrderStatus);
+              }}
+              onClick={(e) => e.stopPropagation()}
               style={{ color, cursor: 'pointer', backgroundColor: 'var(--bg-card)', padding: '0.5rem', border: 'none', outline: 'none' }}
               disabled={item.status !== OrderStatus.Pending} // Usually only Pending orders can change status
             >
@@ -150,7 +154,8 @@ export default function Orders() {
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               setDeletingId(item.id);
               setIsDeleteModalOpen(true);
             }}
@@ -191,6 +196,7 @@ export default function Orders() {
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}
           isLoading={isLoading}
+          onRowClick={(item) => navigate(`/orders/${item.id}`)}
         />
       )}
 

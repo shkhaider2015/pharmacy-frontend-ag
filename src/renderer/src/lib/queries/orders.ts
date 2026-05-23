@@ -6,7 +6,7 @@ export interface OrderItem {
   id: string;
   productId: string;
   quantity: number;
-  price: number;
+  pricePerUnit: number;
   product?: { id: string; name: string; sku: string; price: number };
   manufacturingDate?: string;
   expiryDate?: string;
@@ -36,6 +36,17 @@ export const useOrders = (page: number, limit: number = 10) => {
 
       return response.data.data;
     }
+  });
+};
+
+export const useOrder = (id: string) => {
+  return useQuery({
+    queryKey: ['order', id],
+    queryFn: async () => {
+      const response = await api.get<BaseResponse<Order>>(`/orders/${id}`);
+      return response.data.data;
+    },
+    enabled: !!id,
   });
 };
 

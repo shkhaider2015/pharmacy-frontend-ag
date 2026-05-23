@@ -10,6 +10,7 @@ import Users from './screens/Users';
 import Orders from './screens/Orders';
 import NewSaleOrder from './screens/NewSaleOrder';
 import NewPurchaseOrder from './screens/NewPurchaseOrder';
+import OrderDetails from './screens/OrderDetails';
 import { useAuthStore } from './store/authStore';
 
 const ProtectedRoute = () => {
@@ -48,6 +49,7 @@ function App() {
             <Route path="orders" element={<Orders />} />
             <Route path="orders/new-sale" element={<NewSaleOrder />} />
             <Route path="orders/new-purchase" element={<NewPurchaseOrder />} />
+            <Route path="orders/:id" element={<OrderDetails />} />
           </Route>
         </Route>
       </Routes>

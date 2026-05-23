@@ -20,6 +20,7 @@ interface GenericTableProps<T> {
   meta?: PaginationMeta;
   onPageChange?: (page: number) => void;
   isLoading?: boolean;
+  onRowClick?: (item: T) => void;
 }
 
 export default function GenericTable<T>({ 
@@ -27,7 +28,8 @@ export default function GenericTable<T>({
   columns, 
   meta, 
   onPageChange,
-  isLoading 
+  isLoading,
+  onRowClick
 }: GenericTableProps<T>) {
   
   return (
@@ -62,10 +64,12 @@ export default function GenericTable<T>({
                   key={rowIndex} 
                   style={{ 
                     borderBottom: '1px solid var(--border-light)',
-                    transition: 'background-color var(--transition-fast)'
+                    transition: 'background-color var(--transition-fast)',
+                    cursor: onRowClick ? 'pointer' : 'default'
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-glass-hover)'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  onClick={() => onRowClick && onRowClick(item)}
                 >
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} style={{ padding: '1rem', fontSize: '0.875rem', color: 'var(--text-primary)' }}>
