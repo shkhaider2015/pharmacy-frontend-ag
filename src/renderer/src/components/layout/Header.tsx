@@ -1,4 +1,4 @@
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, User } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 
@@ -30,15 +30,6 @@ export default function Header() {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <div style={{ position: 'relative' }}>
-          <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="input-field"
-            style={{ paddingLeft: '2.5rem', width: '250px', background: 'var(--bg-dark-soft)' }}
-          />
-        </div>
 
         <button className="btn btn-ghost" style={{ padding: '0.5rem', borderRadius: '50%' }}>
           <Bell size={20} />

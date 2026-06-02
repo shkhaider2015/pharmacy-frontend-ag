@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, CheckCircle2, XCircle, Search } from 'lucide-react';
 import { useSuppliers, Supplier, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '../lib/queries/suppliers';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import { useAuthStore } from '@renderer/store/authStore';
 
 export default function Suppliers() {
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const limit = 10;
 
   const userRole = useAuthStore(state => state.user?.role);
@@ -143,12 +144,36 @@ export default function Suppliers() {
     }
   ];
 
+  const filteredSuppliers = (data?.data || []).filter((supplier) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      supplier.name?.toLowerCase().includes(query) ||
+      supplier.contactPerson?.toLowerCase().includes(query) ||
+      supplier.email?.toLowerCase().includes(query) ||
+      supplier.phone?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem' }}>Manage Suppliers</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Manage Suppliers</h2>
+          <div style={{ position: 'relative', width: '250px' }}>
+            <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
+              placeholder="Search suppliers..." 
+              className="input-field"
+              style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+            />
+          </div>
+        </div>
         {
-          userRole === Role.Manager || userRole === Role.Admin && (
+          (userRole === Role.Manager || userRole === Role.Admin) && (
             <button className="btn btn-primary" onClick={() => handleOpenForm()}>
               <Plus size={18} />
               Add Supplier
@@ -161,7 +186,7 @@ export default function Suppliers() {
         <div style={{ color: 'var(--accent-danger)' }}>Failed to load suppliers: {(error as Error)?.message}</div>
       ) : (
         <GenericTable
-          data={data?.data || []}
+          data={filteredSuppliers}
           columns={columns}
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}

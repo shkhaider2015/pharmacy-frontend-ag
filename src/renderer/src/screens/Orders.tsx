@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Trash2, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Clock, XCircle, Search } from 'lucide-react';
 import { useOrders, Order, useDeleteOrder, useMarkAsCompleted, useMarkAsCancelled } from '../lib/queries/orders';
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import { useAuthStore } from '@renderer/store/authStore';
 
 export default function Orders() {
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const limit = 10;
   const navigate = useNavigate();
   const [filterType, setFilterType] = useState<'all' | OrderType>('all');
@@ -177,11 +178,21 @@ export default function Orders() {
     }
   ];
 
+  const filteredOrders = (data?.data || []).filter((order) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      order.id?.toLowerCase().includes(query) ||
+      order.type?.toLowerCase().includes(query) ||
+      order.status?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.25rem' }}>Manage Orders</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Manage Orders</h2>
           <div className="segment-control">
             <button
               className={`segment-item ${filterType === 'all' ? 'active' : ''}`}
@@ -202,6 +213,17 @@ export default function Orders() {
               Purchase
             </button>
           </div>
+          <div style={{ position: 'relative', width: '220px' }}>
+            <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
+              placeholder="Search orders..." 
+              className="input-field"
+              style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+            />
+          </div>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button className="btn btn-primary" onClick={() => navigate('/orders/new-sale')}>
@@ -209,7 +231,7 @@ export default function Orders() {
             New Sale
           </button>
           {
-            userRole === Role.Manager || userRole === Role.Admin && (
+            (userRole === Role.Manager || userRole === Role.Admin) && (
               <button className="btn btn-primary" onClick={() => navigate('/orders/new-purchase')}>
                 <Plus size={18} />
                 New Purchase
@@ -223,7 +245,7 @@ export default function Orders() {
         <div style={{ color: 'var(--accent-danger)' }}>Failed to load orders: {(error as Error)?.message}</div>
       ) : (
         <GenericTable
-          data={data?.data || []}
+          data={filteredOrders}
           columns={columns}
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}

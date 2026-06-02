@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle, CheckCircle2, Clock, Search } from 'lucide-react';
 import { useInventory, InventoryItem, useCreateInventoryBatch, useUpdateInventoryBatch, useDeleteInventoryBatch } from '../lib/queries/inventory';
 import { useProducts } from '../lib/queries/products';
 import { useSuppliers } from '../lib/queries/suppliers';
@@ -14,6 +14,7 @@ import { Role } from '@renderer/constants/enums';
 
 export default function Inventory() {
   const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const limit = 10;
 
   const userRole = useAuthStore(state => state.user?.role);
@@ -183,10 +184,32 @@ export default function Inventory() {
     }
   ];
 
+  const filteredInventory = (data?.data || []).filter((item) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (
+      item.productName?.toLowerCase().includes(query) ||
+      item.batchNumber?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem' }}>Inventory Status (FEFO)</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+          <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Inventory Status (FEFO)</h2>
+          <div style={{ position: 'relative', width: '220px' }}>
+            <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              type="text" 
+              placeholder="Search inventory..." 
+              className="input-field"
+              style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+            />
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select
             className="input-field"
@@ -216,7 +239,7 @@ export default function Inventory() {
         <div style={{ color: 'var(--accent-danger)' }}>Failed to load inventory: {(error as Error)?.message}</div>
       ) : (
         <GenericTable
-          data={data?.data || []}
+          data={filteredInventory}
           columns={columns}
           meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
           onPageChange={setPage}
