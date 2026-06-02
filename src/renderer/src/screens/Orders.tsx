@@ -5,7 +5,7 @@ import { useOrders, Order, useDeleteOrder, useMarkAsCompleted, useMarkAsCancelle
 import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { OrderStatus, Role } from '@renderer/constants/enums';
+import { OrderStatus, Role, OrderType } from '@renderer/constants/enums';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@renderer/store/authStore';
 
@@ -13,9 +13,19 @@ export default function Orders() {
   const [page, setPage] = useState(1);
   const limit = 10;
   const navigate = useNavigate();
+  const [filterType, setFilterType] = useState<'all' | OrderType>('all');
 
   const userRole = useAuthStore(state => state.user?.role);
-  const { data, isLoading, isError, error } = useOrders(page, limit);
+  const { data, isLoading, isError, error } = useOrders(
+    page,
+    limit,
+    filterType === 'all' ? undefined : filterType
+  );
+
+  const handleFilterChange = (type: 'all' | OrderType) => {
+    setFilterType(type);
+    setPage(1);
+  };
 
   const deleteMutation = useDeleteOrder();
   const markAsCompletedMutation = useMarkAsCompleted();
@@ -170,7 +180,29 @@ export default function Orders() {
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem' }}>Manage Orders</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.25rem' }}>Manage Orders</h2>
+          <div className="segment-control">
+            <button
+              className={`segment-item ${filterType === 'all' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('all')}
+            >
+              All
+            </button>
+            <button
+              className={`segment-item ${filterType === OrderType.Sales ? 'active' : ''}`}
+              onClick={() => handleFilterChange(OrderType.Sales)}
+            >
+              Sales
+            </button>
+            <button
+              className={`segment-item ${filterType === OrderType.Purchase ? 'active' : ''}`}
+              onClick={() => handleFilterChange(OrderType.Purchase)}
+            >
+              Purchase
+            </button>
+          </div>
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
           <button className="btn btn-primary" onClick={() => navigate('/orders/new-sale')}>
             <Plus size={18} />

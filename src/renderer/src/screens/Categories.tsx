@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import GenericTable, { TableColumn } from '../components/ui/GenericTable';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useCategories, Category, useCreateCategory, useUpdateCategory, useDeleteCategory } from '../lib/queries/categories';

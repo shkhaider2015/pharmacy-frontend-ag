@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useInfiniteQuery, InfiniteData, QueryKey } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { BaseResponse, PaginatedPayload } from '../api';
 import { OrderType } from '@renderer/constants/enums';
 
@@ -24,12 +24,12 @@ export interface Order {
   updatedAt?: string;
 }
 
-export const useOrders = (page: number, limit: number = 10) => {
+export const useOrders = (page: number, limit: number = 10, type?: string) => {
   return useQuery({
-    queryKey: ['orders', page, limit],
+    queryKey: ['orders', page, limit, type],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<Order>>>('/orders', {
-        params: { page, limit }
+        params: { page, limit, type: type || undefined }
       });
 
       console.log(response.data.data);
