@@ -1,34 +1,34 @@
-import { useState } from 'react';
-import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, Package, Search } from 'lucide-react';
-import { useProducts, Product, useCreateProduct, useUpdateProduct, useDeleteProduct } from '../lib/queries/products';
-import { useCategories } from '../lib/queries/categories';
-import { useSuppliers } from '../lib/queries/suppliers';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import Modal from '../components/ui/Modal';
-import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { useAuthStore } from '@renderer/store/authStore';
-import { Role } from '@renderer/constants/enums';
+import { useState } from 'react'
+import GenericTable, { TableColumn } from '../components/ui/GenericTable'
+import { Plus, Edit2, Trash2, Package, Search } from 'lucide-react'
+import { useProducts, Product, useCreateProduct, useUpdateProduct, useDeleteProduct } from '../lib/queries/products'
+import { useCategories } from '../lib/queries/categories'
+import { useSuppliers } from '../lib/queries/suppliers'
+import { useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import Modal from '../components/ui/Modal'
+import ConfirmationModal from '../components/ui/ConfirmationModal'
+import { useAuthStore } from '@renderer/store/authStore'
+import { Role } from '@renderer/constants/enums'
 
 export default function Products() {
-  const [page, setPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const limit = 10;
+  const [page, setPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const limit = 10
 
-  const userRole = useAuthStore(state => state.user?.role);
-  const { data, isLoading, isError, error } = useProducts(page, limit);
-  const { data: catData } = useCategories(1, 100);
-  const { data: supData } = useSuppliers(1, 100);
+  const userRole = useAuthStore((state) => state.user?.role)
+  const { data, isLoading, isError, error } = useProducts(page, limit)
+  const { data: catData } = useCategories(1, 100)
+  const { data: supData } = useSuppliers(1, 100)
 
-  const createMutation = useCreateProduct();
-  const updateMutation = useUpdateProduct();
-  const deleteMutation = useDeleteProduct();
-  const queryClient = useQueryClient();
+  const createMutation = useCreateProduct()
+  const updateMutation = useUpdateProduct()
+  const deleteMutation = useDeleteProduct()
+  const queryClient = useQueryClient()
 
   // Modal states
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Data states
   const [formData, setFormData] = useState({
@@ -38,79 +38,79 @@ export default function Products() {
     description: '',
     categoryId: [''],
     supplierId: ''
-  });
-  const [isDirty, setIsDirty] = useState(false);
+  })
+  const [isDirty, setIsDirty] = useState(false)
 
   // Discard & Delete states
-  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenForm = (product?: Product & { unitPrice?: number }) => {
     if (product) {
-      setEditingId(product.id);
+      setEditingId(product.id)
       setFormData({
         name: product.name || '',
         sku: product.sku || '',
         price: product.unitPrice || 0, // Map backend unitPrice to form price
         description: product.description || '',
-        categoryId: [...product.categories.map(i => i.id)],
+        categoryId: [...product.categories.map((i) => i.id)],
         supplierId: product.supplier?.id || ''
-      });
+      })
     } else {
-      setEditingId(null);
-      setFormData({ name: '', sku: '', price: 0, description: '', categoryId: [''], supplierId: '' });
+      setEditingId(null)
+      setFormData({ name: '', sku: '', price: 0, description: '', categoryId: [''], supplierId: '' })
     }
-    setIsDirty(false);
-    setIsFormOpen(true);
-  };
+    setIsDirty(false)
+    setIsFormOpen(true)
+  }
 
   const handleCloseForm = () => {
     if (isDirty) {
-      setIsDiscardModalOpen(true);
+      setIsDiscardModalOpen(true)
     } else {
-      setIsFormOpen(false);
+      setIsFormOpen(false)
     }
-  };
+  }
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       const payload: any = {
         name: formData.name,
         sku: formData.sku,
         price: Number(formData.price),
         description: formData.description
-      };
+      }
 
-      if (formData.categoryId) payload.categoryIds = formData.categoryId.filter(i => i);
-      if (formData.supplierId) payload.supplierId = formData.supplierId;
+      if (formData.categoryId) payload.categoryIds = formData.categoryId.filter((i) => i)
+      if (formData.supplierId) payload.supplierId = formData.supplierId
 
       if (editingId) {
-        await updateMutation.mutateAsync({ id: editingId, data: payload });
-        toast.success('Product updated successfully');
+        await updateMutation.mutateAsync({ id: editingId, data: payload })
+        toast.success('Product updated successfully')
       } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('Product created successfully');
+        await createMutation.mutateAsync(payload)
+        toast.success('Product created successfully')
       }
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      setIsFormOpen(false);
-      setIsDirty(false);
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      setIsFormOpen(false)
+      setIsDirty(false)
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!deletingId) return;
+    if (!deletingId) return
     try {
-      await deleteMutation.mutateAsync(deletingId);
-      toast.success('Product deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      await deleteMutation.mutateAsync(deletingId)
+      toast.success('Product deleted successfully')
+      queryClient.invalidateQueries({ queryKey: ['products'] })
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const columns: TableColumn<Product>[] = [
     {
@@ -126,7 +126,7 @@ export default function Products() {
     },
     {
       header: 'Category',
-      cell: (item) => item.categories.map(i => i.name).join(", ") || 'Uncategorized'
+      cell: (item) => item.categories.map((i) => i.name).join(', ') || 'Uncategorized'
     },
     {
       header: 'SKU / Barcode',
@@ -140,19 +140,15 @@ export default function Products() {
       header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-ghost"
-            style={{ padding: '0.5rem' }}
-            onClick={() => handleOpenForm(item)}
-          >
+          <button className="btn btn-ghost" style={{ padding: '0.5rem' }} onClick={() => handleOpenForm(item)}>
             <Edit2 size={16} />
           </button>
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
             onClick={() => {
-              setDeletingId(item.id);
-              setIsDeleteModalOpen(true);
+              setDeletingId(item.id)
+              setIsDeleteModalOpen(true)
             }}
           >
             <Trash2 size={16} />
@@ -160,18 +156,15 @@ export default function Products() {
         </div>
       )
     }
-  ];
+  ]
 
-  console.log("Data ", data)
+  console.log('Data ', data)
 
   const filteredProducts = (data?.data || []).filter((product) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      product.name?.toLowerCase().includes(query) ||
-      product.sku?.toLowerCase().includes(query)
-    );
-  });
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return true
+    return product.name?.toLowerCase().includes(query) || product.sku?.toLowerCase().includes(query)
+  })
 
   return (
     <div className="animate-fade-in">
@@ -180,74 +173,76 @@ export default function Products() {
           <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Manage Products</h2>
           <div style={{ position: 'relative', width: '250px' }}>
             <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              placeholder="Search products..."
               className="input-field"
               style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
               value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
             />
           </div>
         </div>
-        {
-          (userRole === Role.Manager || userRole === Role.Admin) && (
-            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-              <Plus size={18} />
-              Add Product
-            </button>
-          )
-        }
+        {(userRole === Role.Manager || userRole === Role.Admin) && (
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <Plus size={18} />
+            Add Product
+          </button>
+        )}
       </div>
 
-      {isError ? (
-        <div style={{ color: 'var(--accent-danger)' }}>Failed to load products: {(error as Error)?.message}</div>
-      ) : (
-        <GenericTable
-          data={filteredProducts}
-          columns={columns}
-          meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
-          onPageChange={setPage}
-          isLoading={isLoading}
-        />
-      )}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load products: {(error as Error)?.message}</div> : <GenericTable data={filteredProducts} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
-      <Modal
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        title={editingId ? 'Edit Product' : 'Add Product'}
-      >
+      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit Product' : 'Add Product'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Name <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+              Name <span style={{ color: 'var(--accent-danger)' }}>*</span>
+            </label>
             <input
               type="text"
               required
               className="input-field"
               value={formData.name}
-              onChange={e => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>SKU <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                SKU <span style={{ color: 'var(--accent-danger)' }}>*</span>
+              </label>
               <input
                 type="text"
                 required
                 className="input-field"
                 value={formData.sku}
-                onChange={e => { setFormData({ ...formData, sku: e.target.value }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, sku: e.target.value })
+                  setIsDirty(true)
+                }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Price <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                Price <span style={{ color: 'var(--accent-danger)' }}>*</span>
+              </label>
               <input
                 type="number"
                 step="0.01"
                 required
                 className="input-field"
                 value={formData.price}
-                onChange={e => { setFormData({ ...formData, price: Number(e.target.value) }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, price: Number(e.target.value) })
+                  setIsDirty(true)
+                }}
               />
             </div>
           </div>
@@ -258,11 +253,14 @@ export default function Products() {
               <select
                 className="input-field"
                 value={formData.categoryId}
-                onChange={e => { setFormData({ ...formData, categoryId: formData.categoryId.includes(e.target.value) ? [...formData.categoryId.filter(id => id != e.target.value)] : [...formData.categoryId, e.target.value] }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, categoryId: formData.categoryId.includes(e.target.value) ? [...formData.categoryId.filter((id) => id != e.target.value)] : [...formData.categoryId, e.target.value] })
+                  setIsDirty(true)
+                }}
               >
                 <option value="">Select Category</option>
                 {catData?.data?.map((cat: any) => (
-                  <option key={cat.id} value={cat.id}>{`${formData.categoryId.includes(cat.id) ? '✓' : ""} ${cat.name} `}</option>
+                  <option key={cat.id} value={cat.id}>{`${formData.categoryId.includes(cat.id) ? '✓' : ''} ${cat.name} `}</option>
                 ))}
               </select>
             </div>
@@ -271,11 +269,16 @@ export default function Products() {
               <select
                 className="input-field"
                 value={formData.supplierId}
-                onChange={e => { setFormData({ ...formData, supplierId: e.target.value }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, supplierId: e.target.value })
+                  setIsDirty(true)
+                }}
               >
                 <option value="">Select Supplier</option>
                 {supData?.data?.map((sup: any) => (
-                  <option key={sup.id} value={sup.id}>{sup.name}</option>
+                  <option key={sup.id} value={sup.id}>
+                    {sup.name}
+                  </option>
                 ))}
               </select>
             </div>
@@ -287,12 +290,17 @@ export default function Products() {
               className="input-field"
               style={{ minHeight: '80px', resize: 'vertical' }}
               value={formData.description}
-              onChange={e => { setFormData({ ...formData, description: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, description: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Go Back</button>
+            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>
+              Go Back
+            </button>
             <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || updateMutation.isPending}>
               {editingId ? 'Save Changes' : 'Create Product'}
             </button>
@@ -308,16 +316,16 @@ export default function Products() {
         confirmLabel="Discard"
         cancelLabel="Keep Editing"
         onConfirm={() => {
-          setIsDirty(false);
-          setIsFormOpen(false);
+          setIsDirty(false)
+          setIsFormOpen(false)
         }}
       />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeletingId(null);
+          setIsDeleteModalOpen(false)
+          setDeletingId(null)
         }}
         title="Delete Product"
         message="Are you sure you want to delete this product? This action cannot be undone."
@@ -325,5 +333,5 @@ export default function Products() {
         onConfirm={handleDelete}
       />
     </div>
-  );
+  )
 }

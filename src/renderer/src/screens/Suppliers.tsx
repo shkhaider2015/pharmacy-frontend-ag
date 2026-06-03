@@ -1,105 +1,105 @@
-import { useState } from 'react';
-import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, CheckCircle2, XCircle, Search } from 'lucide-react';
-import { useSuppliers, Supplier, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '../lib/queries/suppliers';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import Modal from '../components/ui/Modal';
-import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { Role, SupplierStatus } from '@renderer/constants/enums';
-import { useAuthStore } from '@renderer/store/authStore';
+import { useState } from 'react'
+import GenericTable, { TableColumn } from '../components/ui/GenericTable'
+import { Plus, Edit2, Trash2, CheckCircle2, XCircle, Search } from 'lucide-react'
+import { useSuppliers, Supplier, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '../lib/queries/suppliers'
+import { useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import Modal from '../components/ui/Modal'
+import ConfirmationModal from '../components/ui/ConfirmationModal'
+import { Role, SupplierStatus } from '@renderer/constants/enums'
+import { useAuthStore } from '@renderer/store/authStore'
 
 export default function Suppliers() {
-  const [page, setPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const limit = 10;
+  const [page, setPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const limit = 10
 
-  const userRole = useAuthStore(state => state.user?.role);
-  const { data, isLoading, isError, error } = useSuppliers(page, limit);
-  const createMutation = useCreateSupplier();
-  const updateMutation = useUpdateSupplier();
-  const deleteMutation = useDeleteSupplier();
-  const queryClient = useQueryClient();
+  const userRole = useAuthStore((state) => state.user?.role)
+  const { data, isLoading, isError, error } = useSuppliers(page, limit)
+  const createMutation = useCreateSupplier()
+  const updateMutation = useUpdateSupplier()
+  const deleteMutation = useDeleteSupplier()
+  const queryClient = useQueryClient()
 
   // Modal states
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Data states
   const [formData, setFormData] = useState<{
-    name: string;
-    contactPerson: string;
-    email: string;
-    phone: string;
-    status: SupplierStatus;
+    name: string
+    contactPerson: string
+    email: string
+    phone: string
+    status: SupplierStatus
   }>({
     name: '',
     contactPerson: '',
     email: '',
     phone: '',
     status: SupplierStatus.ACTIVE
-  });
-  const [isDirty, setIsDirty] = useState(false);
+  })
+  const [isDirty, setIsDirty] = useState(false)
 
   // Discard & Delete states
-  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenForm = (supplier?: Supplier) => {
     if (supplier) {
-      setEditingId(supplier.id);
+      setEditingId(supplier.id)
       setFormData({
         name: supplier.name,
         contactPerson: supplier.contactPerson || '',
         email: supplier.email || '',
         phone: supplier.phone || '',
         status: supplier.status || SupplierStatus.ACTIVE
-      });
+      })
     } else {
-      setEditingId(null);
-      setFormData({ name: '', contactPerson: '', email: '', phone: '', status: SupplierStatus.ACTIVE });
+      setEditingId(null)
+      setFormData({ name: '', contactPerson: '', email: '', phone: '', status: SupplierStatus.ACTIVE })
     }
-    setIsDirty(false);
-    setIsFormOpen(true);
-  };
+    setIsDirty(false)
+    setIsFormOpen(true)
+  }
 
   const handleCloseForm = () => {
     if (isDirty) {
-      setIsDiscardModalOpen(true);
+      setIsDiscardModalOpen(true)
     } else {
-      setIsFormOpen(false);
+      setIsFormOpen(false)
     }
-  };
+  }
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       if (editingId) {
-        await updateMutation.mutateAsync({ id: editingId, data: formData });
-        toast.success('Supplier updated successfully');
+        await updateMutation.mutateAsync({ id: editingId, data: formData })
+        toast.success('Supplier updated successfully')
       } else {
-        await createMutation.mutateAsync(formData);
-        toast.success('Supplier created successfully');
+        await createMutation.mutateAsync(formData)
+        toast.success('Supplier created successfully')
       }
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      setIsFormOpen(false);
-      setIsDirty(false);
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
+      setIsFormOpen(false)
+      setIsDirty(false)
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!deletingId) return;
+    if (!deletingId) return
     try {
-      await deleteMutation.mutateAsync(deletingId);
-      toast.success('Supplier deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      await deleteMutation.mutateAsync(deletingId)
+      toast.success('Supplier deleted successfully')
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] })
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const columns: TableColumn<Supplier>[] = [
     { header: 'Supplier Name', accessorKey: 'name' },
@@ -109,32 +109,28 @@ export default function Suppliers() {
     {
       header: 'Status',
       cell: (item) => {
-        const isActive = item.status === SupplierStatus.ACTIVE;
+        const isActive = item.status === SupplierStatus.ACTIVE
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: isActive ? 'var(--accent-success)' : 'var(--text-muted)' }}>
             {isActive ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{isActive ? 'Active' : 'Inactive'}</span>
           </div>
-        );
+        )
       }
     },
     {
       header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-ghost"
-            style={{ padding: '0.5rem' }}
-            onClick={() => handleOpenForm(item)}
-          >
+          <button className="btn btn-ghost" style={{ padding: '0.5rem' }} onClick={() => handleOpenForm(item)}>
             <Edit2 size={16} />
           </button>
           <button
             className="btn btn-ghost"
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
             onClick={() => {
-              setDeletingId(item.id);
-              setIsDeleteModalOpen(true);
+              setDeletingId(item.id)
+              setIsDeleteModalOpen(true)
             }}
           >
             <Trash2 size={16} />
@@ -142,18 +138,13 @@ export default function Suppliers() {
         </div>
       )
     }
-  ];
+  ]
 
   const filteredSuppliers = (data?.data || []).filter((supplier) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      supplier.name?.toLowerCase().includes(query) ||
-      supplier.contactPerson?.toLowerCase().includes(query) ||
-      supplier.email?.toLowerCase().includes(query) ||
-      supplier.phone?.toLowerCase().includes(query)
-    );
-  });
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return true
+    return supplier.name?.toLowerCase().includes(query) || supplier.contactPerson?.toLowerCase().includes(query) || supplier.email?.toLowerCase().includes(query) || supplier.phone?.toLowerCase().includes(query)
+  })
 
   return (
     <div className="animate-fade-in">
@@ -162,52 +153,44 @@ export default function Suppliers() {
           <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Manage Suppliers</h2>
           <div style={{ position: 'relative', width: '250px' }}>
             <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="Search suppliers..." 
+            <input
+              type="text"
+              placeholder="Search suppliers..."
               className="input-field"
               style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
               value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
             />
           </div>
         </div>
-        {
-          (userRole === Role.Manager || userRole === Role.Admin) && (
-            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-              <Plus size={18} />
-              Add Supplier
-            </button>
-          )
-        }
+        {(userRole === Role.Manager || userRole === Role.Admin) && (
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <Plus size={18} />
+            Add Supplier
+          </button>
+        )}
       </div>
 
-      {isError ? (
-        <div style={{ color: 'var(--accent-danger)' }}>Failed to load suppliers: {(error as Error)?.message}</div>
-      ) : (
-        <GenericTable
-          data={filteredSuppliers}
-          columns={columns}
-          meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
-          onPageChange={setPage}
-          isLoading={isLoading}
-        />
-      )}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load suppliers: {(error as Error)?.message}</div> : <GenericTable data={filteredSuppliers} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
-      <Modal
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        title={editingId ? 'Edit Supplier' : 'Add Supplier'}
-      >
+      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit Supplier' : 'Add Supplier'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Supplier Name <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+              Supplier Name <span style={{ color: 'var(--accent-danger)' }}>*</span>
+            </label>
             <input
               type="text"
               required
               className="input-field"
               value={formData.name}
-              onChange={e => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
@@ -217,17 +200,25 @@ export default function Suppliers() {
                 type="text"
                 className="input-field"
                 value={formData.contactPerson}
-                onChange={e => { setFormData({ ...formData, contactPerson: e.target.value }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, contactPerson: e.target.value })
+                  setIsDirty(true)
+                }}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Email <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+                Email <span style={{ color: 'var(--accent-danger)' }}>*</span>
+              </label>
               <input
                 type="email"
                 required
                 className="input-field"
                 value={formData.email}
-                onChange={e => { setFormData({ ...formData, email: e.target.value }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value })
+                  setIsDirty(true)
+                }}
               />
             </div>
           </div>
@@ -238,7 +229,10 @@ export default function Suppliers() {
                 type="text"
                 className="input-field"
                 value={formData.phone}
-                onChange={e => { setFormData({ ...formData, phone: e.target.value }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value })
+                  setIsDirty(true)
+                }}
               />
             </div>
             <div style={{ flex: 1 }}>
@@ -246,7 +240,10 @@ export default function Suppliers() {
               <select
                 className="input-field"
                 value={formData.status}
-                onChange={e => { setFormData({ ...formData, status: e.target.value as any }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, status: e.target.value as any })
+                  setIsDirty(true)
+                }}
               >
                 <option value={SupplierStatus.ACTIVE}>{SupplierStatus.ACTIVE}</option>
                 <option value={SupplierStatus.INACTIVE}>{SupplierStatus.INACTIVE}</option>
@@ -254,7 +251,9 @@ export default function Suppliers() {
             </div>
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Go Back</button>
+            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>
+              Go Back
+            </button>
             <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || updateMutation.isPending}>
               {editingId ? 'Save Changes' : 'Create Supplier'}
             </button>
@@ -270,16 +269,16 @@ export default function Suppliers() {
         confirmLabel="Discard"
         cancelLabel="Keep Editing"
         onConfirm={() => {
-          setIsDirty(false);
-          setIsFormOpen(false);
+          setIsDirty(false)
+          setIsFormOpen(false)
         }}
       />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeletingId(null);
+          setIsDeleteModalOpen(false)
+          setDeletingId(null)
         }}
         title="Delete Supplier"
         message="Are you sure you want to delete this supplier? This action cannot be undone."
@@ -287,5 +286,5 @@ export default function Suppliers() {
         onConfirm={handleDelete}
       />
     </div>
-  );
+  )
 }

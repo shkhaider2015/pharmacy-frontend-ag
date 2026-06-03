@@ -1,29 +1,29 @@
-import { useState } from 'react';
-import GenericTable, { TableColumn } from '../components/ui/GenericTable';
-import { Plus, Edit2, Trash2, Shield, User as UserIcon, CheckCircle2, XCircle, Search } from 'lucide-react';
-import { useUsers, User, useCreateUser, useUpdateUser, useDeleteUser } from '../lib/queries/users';
-import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
-import Modal from '../components/ui/Modal';
-import ConfirmationModal from '../components/ui/ConfirmationModal';
-import { useAuthStore } from '@renderer/store/authStore';
-import { Role, UserStatus } from '@renderer/constants/enums';
+import { useState } from 'react'
+import GenericTable, { TableColumn } from '../components/ui/GenericTable'
+import { Plus, Edit2, Trash2, Shield, User as UserIcon, CheckCircle2, XCircle, Search } from 'lucide-react'
+import { useUsers, User, useCreateUser, useUpdateUser, useDeleteUser } from '../lib/queries/users'
+import { useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import Modal from '../components/ui/Modal'
+import ConfirmationModal from '../components/ui/ConfirmationModal'
+import { useAuthStore } from '@renderer/store/authStore'
+import { Role, UserStatus } from '@renderer/constants/enums'
 
 export default function Users() {
-  const [page, setPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
-  const limit = 10;
+  const [page, setPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const limit = 10
 
-  const userRole = useAuthStore(state => state.user?.role);
-  const { data, isLoading, isError, error } = useUsers(page, limit);
-  const createMutation = useCreateUser();
-  const updateMutation = useUpdateUser();
-  const deleteMutation = useDeleteUser();
-  const queryClient = useQueryClient();
+  const userRole = useAuthStore((state) => state.user?.role)
+  const { data, isLoading, isError, error } = useUsers(page, limit)
+  const createMutation = useCreateUser()
+  const updateMutation = useUpdateUser()
+  const deleteMutation = useDeleteUser()
+  const queryClient = useQueryClient()
 
   // Modal states
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Data states
   const [formData, setFormData] = useState({
@@ -32,78 +32,78 @@ export default function Users() {
     password: '',
     role: Role.Staff,
     status: UserStatus.Inactive
-  });
-  const [isDirty, setIsDirty] = useState(false);
+  })
+  const [isDirty, setIsDirty] = useState(false)
 
   // Discard & Delete states
-  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenForm = (user?: User) => {
     if (user) {
-      setEditingId(user.id);
+      setEditingId(user.id)
       // Try to split name for editing if the backend only gives "name"
-      const parts = (user.name || '').split(' ');
+      const parts = (user.name || '').split(' ')
       setFormData({
         name: parts[0] || '',
         email: user.email || '',
         password: '', // default empty on edit
         role: user.role || Role.Staff,
         status: user.status || UserStatus.Inactive
-      });
+      })
     } else {
-      setEditingId(null);
-      setFormData({ name: '', email: '', password: '', role: Role.Staff, status: UserStatus.Inactive });
+      setEditingId(null)
+      setFormData({ name: '', email: '', password: '', role: Role.Staff, status: UserStatus.Inactive })
     }
-    setIsDirty(false);
-    setIsFormOpen(true);
-  };
+    setIsDirty(false)
+    setIsFormOpen(true)
+  }
 
   const handleCloseForm = () => {
     if (isDirty) {
-      setIsDiscardModalOpen(true);
+      setIsDiscardModalOpen(true)
     } else {
-      setIsFormOpen(false);
+      setIsFormOpen(false)
     }
-  };
+  }
 
   const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
       const payload: any = {
         name: formData.name,
         email: formData.email,
         role: formData.role,
         status: formData.status
-      };
-      if (formData.password) payload.password = formData.password;
+      }
+      if (formData.password) payload.password = formData.password
 
       if (editingId) {
-        await updateMutation.mutateAsync({ id: editingId, data: payload });
-        toast.success('User updated successfully');
+        await updateMutation.mutateAsync({ id: editingId, data: payload })
+        toast.success('User updated successfully')
       } else {
-        await createMutation.mutateAsync(payload);
-        toast.success('User created successfully');
+        await createMutation.mutateAsync(payload)
+        toast.success('User created successfully')
       }
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setIsFormOpen(false);
-      setIsDirty(false);
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      setIsFormOpen(false)
+      setIsDirty(false)
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!deletingId) return;
+    if (!deletingId) return
     try {
-      await deleteMutation.mutateAsync(deletingId);
-      toast.success('User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      await deleteMutation.mutateAsync(deletingId)
+      toast.success('User deleted successfully')
+      queryClient.invalidateQueries({ queryKey: ['users'] })
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const columns: TableColumn<User>[] = [
     {
@@ -121,37 +121,32 @@ export default function Users() {
     {
       header: 'Role',
       cell: (item) => {
-        const isAdmin = item.role === 'Admin';
+        const isAdmin = item.role === 'Admin'
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: isAdmin ? 'var(--accent-primary)' : 'var(--text-secondary)' }}>
             {isAdmin && <Shield size={14} />}
             <span style={{ fontSize: '0.875rem', fontWeight: isAdmin ? 600 : 400 }}>{item.role}</span>
           </div>
-        );
+        )
       }
     },
     {
       header: 'Status',
       cell: (item) => {
-        const isActive = item.status === 'active';
+        const isActive = item.status === 'active'
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: isActive ? 'var(--accent-success)' : 'var(--text-muted)' }}>
             {isActive ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{isActive ? 'Active' : 'Inactive'}</span>
           </div>
-        );
+        )
       }
     },
     {
       header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button
-            className="btn btn-ghost"
-            style={{ padding: '0.5rem' }}
-            disabled={userRole === Role.Manager && item.role === Role.Staff}
-            onClick={() => handleOpenForm(item)}
-          >
+          <button className="btn btn-ghost" style={{ padding: '0.5rem' }} disabled={userRole === Role.Manager && item.role === Role.Staff} onClick={() => handleOpenForm(item)}>
             <Edit2 size={16} />
           </button>
           <button
@@ -159,8 +154,8 @@ export default function Users() {
             style={{ padding: '0.5rem', color: 'var(--accent-danger)' }}
             disabled={userRole === Role.Manager && item.role === Role.Staff}
             onClick={() => {
-              setDeletingId(item.id);
-              setIsDeleteModalOpen(true);
+              setDeletingId(item.id)
+              setIsDeleteModalOpen(true)
             }}
           >
             <Trash2 size={16} />
@@ -168,17 +163,13 @@ export default function Users() {
         </div>
       )
     }
-  ];
+  ]
 
   const filteredUsers = (data?.data || []).filter((user) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      user.name?.toLowerCase().includes(query) ||
-      user.email?.toLowerCase().includes(query) ||
-      user.role?.toLowerCase().includes(query)
-    );
-  });
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return true
+    return user.name?.toLowerCase().includes(query) || user.email?.toLowerCase().includes(query) || user.role?.toLowerCase().includes(query)
+  })
 
   return (
     <div className="animate-fade-in">
@@ -187,63 +178,60 @@ export default function Users() {
           <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Manage Users</h2>
           <div style={{ position: 'relative', width: '250px' }}>
             <Search size={18} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="Search users..." 
+            <input
+              type="text"
+              placeholder="Search users..."
               className="input-field"
               style={{ paddingLeft: '2.5rem', background: 'var(--bg-dark-soft)' }}
               value={searchQuery}
-              onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setPage(1)
+              }}
             />
           </div>
         </div>
-        {
-          (userRole === Role.Manager || userRole === Role.Admin) && (
-            <button className="btn btn-primary" onClick={() => handleOpenForm()}>
-              <Plus size={18} />
-              Add User
-            </button>
-          )
-        }
+        {(userRole === Role.Manager || userRole === Role.Admin) && (
+          <button className="btn btn-primary" onClick={() => handleOpenForm()}>
+            <Plus size={18} />
+            Add User
+          </button>
+        )}
       </div>
 
-      {isError ? (
-        <div style={{ color: 'var(--accent-danger)' }}>Failed to load users: {(error as Error)?.message}</div>
-      ) : (
-        <GenericTable
-          data={filteredUsers}
-          columns={columns}
-          meta={data?.meta || { page, limit, total: 0, totalPages: 1 }}
-          onPageChange={setPage}
-          isLoading={isLoading}
-        />
-      )}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load users: {(error as Error)?.message}</div> : <GenericTable data={filteredUsers} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
-      <Modal
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        title={editingId ? 'Edit User' : 'Add User'}
-      >
+      <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit User' : 'Add User'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Full Name <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+              Full Name <span style={{ color: 'var(--accent-danger)' }}>*</span>
+            </label>
             <input
               type="text"
               required
               className="input-field"
               value={formData.name}
-              onChange={e => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>Email <span style={{ color: 'var(--accent-danger)' }}>*</span></label>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
+              Email <span style={{ color: 'var(--accent-danger)' }}>*</span>
+            </label>
             <input
               type="email"
               required
               className="input-field"
               value={formData.email}
-              onChange={e => { setFormData({ ...formData, email: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
 
@@ -257,7 +245,10 @@ export default function Users() {
               required={!editingId}
               className="input-field"
               value={formData.password}
-              onChange={e => { setFormData({ ...formData, password: e.target.value }); setIsDirty(true); }}
+              onChange={(e) => {
+                setFormData({ ...formData, password: e.target.value })
+                setIsDirty(true)
+              }}
             />
           </div>
 
@@ -267,7 +258,10 @@ export default function Users() {
               <select
                 className="input-field"
                 value={formData.role}
-                onChange={e => { setFormData({ ...formData, role: e.target.value as Role }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, role: e.target.value as Role })
+                  setIsDirty(true)
+                }}
               >
                 <option value={Role.Staff}>{Role.Staff}</option>
                 <option value={Role.Manager}>{Role.Manager}</option>
@@ -279,7 +273,10 @@ export default function Users() {
               <select
                 className="input-field"
                 value={formData.status}
-                onChange={e => { setFormData({ ...formData, status: e.target.value as UserStatus }); setIsDirty(true); }}
+                onChange={(e) => {
+                  setFormData({ ...formData, status: e.target.value as UserStatus })
+                  setIsDirty(true)
+                }}
               >
                 <option value={UserStatus.Active}>Active</option>
                 <option value={UserStatus.Inactive}>Inactive</option>
@@ -288,7 +285,9 @@ export default function Users() {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>Go Back</button>
+            <button type="button" className="btn btn-ghost" onClick={handleCloseForm}>
+              Go Back
+            </button>
             <button type="submit" className="btn btn-primary" disabled={createMutation.isPending || updateMutation.isPending}>
               {editingId ? 'Save Changes' : 'Create User'}
             </button>
@@ -304,16 +303,16 @@ export default function Users() {
         confirmLabel="Discard"
         cancelLabel="Keep Editing"
         onConfirm={() => {
-          setIsDirty(false);
-          setIsFormOpen(false);
+          setIsDirty(false)
+          setIsFormOpen(false)
         }}
       />
 
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
-          setIsDeleteModalOpen(false);
-          setDeletingId(null);
+          setIsDeleteModalOpen(false)
+          setDeletingId(null)
         }}
         title="Delete User"
         message="Are you sure you want to delete this user? This action cannot be undone."
@@ -321,5 +320,5 @@ export default function Users() {
         onConfirm={handleDelete}
       />
     </div>
-  );
+  )
 }

@@ -1,25 +1,25 @@
-import { Package, Truck, AlertTriangle, TrendingUp } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useDashboardStats } from '../lib/queries/dashboard';
-import { useNavigate } from 'react-router-dom';
+import { Package, Truck, AlertTriangle, TrendingUp } from 'lucide-react'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useDashboardStats } from '../lib/queries/dashboard'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const { data, isLoading, isError, error } = useDashboardStats();
+  const navigate = useNavigate()
+  const { data, isLoading, isError, error } = useDashboardStats()
 
   const stats = [
     { title: 'Total Revenue', value: `$${(data?.totalRevenue || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: TrendingUp, color: 'var(--accent-primary)' },
     { title: 'Active Products', value: data?.activeProducts?.toLocaleString() || '0', icon: Package, color: 'var(--accent-success)' },
     { title: 'Low Stock Items', value: data?.lowStockItems?.toLocaleString() || '0', icon: AlertTriangle, color: 'var(--accent-warning)' },
-    { title: 'Pending Orders', value: data?.pendingOrders?.toLocaleString() || '0', icon: Truck, color: 'var(--accent-danger)' },
-  ];
+    { title: 'Pending Orders', value: data?.pendingOrders?.toLocaleString() || '0', icon: Truck, color: 'var(--accent-danger)' }
+  ]
 
   if (isLoading) {
     return (
       <div className="animate-fade-in" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
         Loading dashboard metrics...
       </div>
-    );
+    )
   }
 
   if (isError) {
@@ -27,7 +27,7 @@ export default function Dashboard() {
       <div className="animate-fade-in" style={{ padding: '2rem', textAlign: 'center', color: 'var(--accent-danger)' }}>
         Failed to load dashboard: {(error as Error)?.message}
       </div>
-    );
+    )
   }
 
   return (
@@ -61,16 +61,13 @@ export default function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" vertical={false} />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} padding={{ left: 10, right: 10 }} />
                 <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'var(--bg-glass-hover)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }}
-                  itemStyle={{ color: 'var(--text-primary)' }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--bg-glass-hover)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)' }} itemStyle={{ color: 'var(--text-primary)' }} />
                 <Area type="monotone" dataKey="sales" stroke="var(--accent-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
-        <div style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '700px' }} >
+        <div style={{ overflowY: 'auto', overflowX: 'hidden', maxHeight: '700px' }}>
           <div className="glass-panel" style={{ padding: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s, background-color 0.2s' }} onClick={() => navigate('/inventory?filter=near-expiry')}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expiring Soon</h3>
             {data?.expiringSoon?.length === 0 ? (
@@ -81,7 +78,9 @@ export default function Dashboard() {
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderLeft: '4px solid var(--accent-warning)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
                     <div>
                       <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.productName}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Batch {item.batchNumber} • {item.stock} units</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                        Batch {item.batchNumber} • {item.stock} units
+                      </div>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--accent-warning)', fontWeight: 600 }}>In {item.daysRemaining} days</div>
                   </div>
@@ -89,7 +88,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s, background-color 0.2s' }} onClick={() => navigate('/inventory?filter=expired')} >
+          <div className="glass-panel" style={{ padding: '1.5rem', marginTop: '1.5rem', cursor: 'pointer', transition: 'transform 0.2s, background-color 0.2s' }} onClick={() => navigate('/inventory?filter=expired')}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.125rem' }}>Expired</h3>
             {/* Red background style instad of yellow*/}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -101,7 +100,9 @@ export default function Dashboard() {
                     <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: 'rgba(220, 38, 38, 0.1)', borderLeft: '4px solid var(--accent-danger)', borderRadius: '0 var(--radius-sm) var(--radius-sm) 0' }}>
                       <div>
                         <div style={{ fontWeight: 500, fontSize: '0.875rem' }}>{item.productName}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Batch {item.batchNumber} • {item.stock} units</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                          Batch {item.batchNumber} • {item.stock} units
+                        </div>
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--accent-danger)', fontWeight: 600 }}>Expired</div>
                     </div>
@@ -109,10 +110,9 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

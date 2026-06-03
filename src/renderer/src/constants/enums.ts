@@ -1,26 +1,26 @@
 export enum Role {
   Admin = 'Admin',
   Manager = 'Manager',
-  Staff = 'Staff',
+  Staff = 'Staff'
 }
 
 export enum UserStatus {
   Active = 'active',
-  Inactive = 'inactive',
+  Inactive = 'inactive'
 }
 
 export enum OrderType {
   Purchase = 'Purchase',
-  Sales = 'Sales',
+  Sales = 'Sales'
 }
 
 export enum OrderStatus {
   Pending = 'Pending',
   Completed = 'Completed',
-  Cancelled = 'Cancelled',
+  Cancelled = 'Cancelled'
 }
 
 export enum SupplierStatus {
   ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
+  INACTIVE = 'INACTIVE'
 }

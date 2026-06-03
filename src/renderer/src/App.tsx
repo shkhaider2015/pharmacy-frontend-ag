@@ -1,33 +1,33 @@
-import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Layout from './components/layout/Layout';
-import Login from './screens/Login';
-import Dashboard from './screens/Dashboard';
-import Categories from './screens/Categories';
-import Inventory from './screens/Inventory';
-import Suppliers from './screens/Suppliers';
-import Products from './screens/Products';
-import Users from './screens/Users';
-import Orders from './screens/Orders';
-import NewSaleOrder from './screens/NewSaleOrder';
-import NewPurchaseOrder from './screens/NewPurchaseOrder';
-import OrderDetails from './screens/OrderDetails';
-import { useAuthStore } from './store/authStore';
+import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
+import Layout from './components/layout/Layout'
+import Login from './screens/Login'
+import Dashboard from './screens/Dashboard'
+import Categories from './screens/Categories'
+import Inventory from './screens/Inventory'
+import Suppliers from './screens/Suppliers'
+import Products from './screens/Products'
+import Users from './screens/Users'
+import Orders from './screens/Orders'
+import NewSaleOrder from './screens/NewSaleOrder'
+import NewPurchaseOrder from './screens/NewPurchaseOrder'
+import OrderDetails from './screens/OrderDetails'
+import { useAuthStore } from './store/authStore'
 
 const ProtectedRoute = () => {
-  const token = useAuthStore(state => state.token);
+  const token = useAuthStore((state) => state.token)
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace />
   }
-  return <Outlet />;
-};
+  return <Outlet />
+}
 
 const PublicRoute = () => {
-  const token = useAuthStore(state => state.token);
+  const token = useAuthStore((state) => state.token)
   if (token) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />
   }
-  return <Outlet />;
-};
+  return <Outlet />
+}
 
 function App() {
   return (
@@ -54,7 +54,7 @@ function App() {
         </Route>
       </Routes>
     </Router>
-  );
+  )
 }
 
-export default App;
+export default App

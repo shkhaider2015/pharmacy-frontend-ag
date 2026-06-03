@@ -1,25 +1,17 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import {
-  ShoppingBag,
-  LayoutDashboard,
-  Users,
-  PackageSearch,
-  Tags,
-  Truck,
-  LogOut
-} from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
-import { Role } from '@renderer/constants/enums';
+import { NavLink, useNavigate } from 'react-router-dom'
+import { ShoppingBag, LayoutDashboard, Users, PackageSearch, Tags, Truck, LogOut } from 'lucide-react'
+import { useAuthStore } from '../../store/authStore'
+import { Role } from '@renderer/constants/enums'
 
 export default function Sidebar() {
-  const logout = useAuthStore(state => state.logout);
-  const user = useAuthStore(state => state.user);
-  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout)
+  const user = useAuthStore((state) => state.user)
+  const navigate = useNavigate()
 
   const handleSignOut = () => {
-    logout();
-    navigate('/login');
-  };
+    logout()
+    navigate('/login')
+  }
   const menuItems = [
     ...(user?.role === Role.Admin || user?.role === Role.Manager ? [{ name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }] : []),
     ...(user?.role === Role.Admin ? [{ name: 'Inventory', icon: PackageSearch, path: '/inventory' }] : []),
@@ -27,21 +19,24 @@ export default function Sidebar() {
     { name: 'Categories', icon: Tags, path: '/categories' },
     { name: 'Suppliers', icon: Truck, path: '/suppliers' },
     { name: 'Orders', icon: ShoppingBag, path: '/orders' },
-    ...(user?.role === Role.Admin ? [{ name: 'Users', icon: Users, path: '/users' }] : []),
-  ];
+    ...(user?.role === Role.Admin ? [{ name: 'Users', icon: Users, path: '/users' }] : [])
+  ]
 
   return (
-    <aside className="glass-panel" style={{
-      width: '260px',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      borderRight: '1px solid var(--border-light)',
-      borderRadius: '0', /* override glass-panel radius for sidebar */
-      borderTop: 'none',
-      borderBottom: 'none',
-      borderLeft: 'none'
-    }}>
+    <aside
+      className="glass-panel"
+      style={{
+        width: '260px',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: '1px solid var(--border-light)',
+        borderRadius: '0' /* override glass-panel radius for sidebar */,
+        borderTop: 'none',
+        borderBottom: 'none',
+        borderLeft: 'none'
+      }}
+    >
       <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid var(--border-light)' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
           <div style={{ width: '32px', height: '32px', background: 'var(--accent-primary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -82,5 +77,5 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
-  );
+  )
 }
