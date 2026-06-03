@@ -8,14 +8,17 @@ import Modal from '../components/ui/Modal'
 import ConfirmationModal from '../components/ui/ConfirmationModal'
 import { useAuthStore } from '@renderer/store/authStore'
 import { Role, UserStatus } from '@renderer/constants/enums'
+import { useDebounce } from '../hooks/useDebounce'
 
 export default function Users() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 10
 
+  const debouncedSearch = useDebounce(searchQuery, 500)
+
   const userRole = useAuthStore((state) => state.user?.role)
-  const { data, isLoading, isError, error } = useUsers(page, limit)
+  const { data, isLoading, isError, error } = useUsers(page, limit, debouncedSearch)
   const createMutation = useCreateUser()
   const updateMutation = useUpdateUser()
   const deleteMutation = useDeleteUser()
@@ -165,11 +168,7 @@ export default function Users() {
     }
   ]
 
-  const filteredUsers = (data?.data || []).filter((user) => {
-    const query = searchQuery.toLowerCase().trim()
-    if (!query) return true
-    return user.name?.toLowerCase().includes(query) || user.email?.toLowerCase().includes(query) || user.role?.toLowerCase().includes(query)
-  })
+  const usersList = data?.data || []
 
   return (
     <div className="animate-fade-in">
@@ -199,7 +198,7 @@ export default function Users() {
         )}
       </div>
 
-      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load users: {(error as Error)?.message}</div> : <GenericTable data={filteredUsers} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load users: {(error as Error)?.message}</div> : <GenericTable data={usersList} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
       <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit User' : 'Add User'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

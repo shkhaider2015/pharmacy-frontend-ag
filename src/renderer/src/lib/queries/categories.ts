@@ -9,12 +9,12 @@ export interface Category {
   updatedAt?: string
 }
 
-export const useCategories = (page: number, limit: number = 10) => {
+export const useCategories = (page: number, limit: number = 10, search?: string) => {
   return useQuery({
-    queryKey: ['categories', page, limit],
+    queryKey: ['categories', page, limit, search],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<Category>>>('/categories', {
-        params: { page, limit }
+        params: { page, limit, search }
       })
       return response.data.data
     }

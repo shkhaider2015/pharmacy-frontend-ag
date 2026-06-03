@@ -24,12 +24,12 @@ export interface Order {
   updatedAt?: string
 }
 
-export const useOrders = (page: number, limit: number = 10, type?: string) => {
+export const useOrders = (page: number, limit: number = 10, type?: string, search?: string) => {
   return useQuery({
-    queryKey: ['orders', page, limit, type],
+    queryKey: ['orders', page, limit, type, search],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<Order>>>('/orders', {
-        params: { page, limit, type: type || undefined }
+        params: { page, limit, type: type || undefined, search }
       })
 
       console.log(response.data.data)

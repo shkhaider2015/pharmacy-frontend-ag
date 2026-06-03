@@ -20,12 +20,12 @@ export interface Product {
   updatedAt?: string
 }
 
-export const useProducts = (page: number, limit: number = 10) => {
+export const useProducts = (page: number, limit: number = 10, search?: string) => {
   return useQuery({
-    queryKey: ['products', page, limit],
+    queryKey: ['products', page, limit, search],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<Product>>>('/products', {
-        params: { page, limit }
+        params: { page, limit, search }
       })
       return response.data.data
     }

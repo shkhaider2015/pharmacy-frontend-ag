@@ -8,14 +8,17 @@ import Modal from '../components/ui/Modal'
 import ConfirmationModal from '../components/ui/ConfirmationModal'
 import { useAuthStore } from '@renderer/store/authStore'
 import { Role } from '@renderer/constants/enums'
+import { useDebounce } from '../hooks/useDebounce'
 
 export default function Categories() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 10
 
+  const debouncedSearch = useDebounce(searchQuery, 500)
+
   const userRole = useAuthStore((state) => state.user?.role)
-  const { data, isLoading, isError, error } = useCategories(page, limit)
+  const { data, isLoading, isError, error } = useCategories(page, limit, debouncedSearch)
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
   const deleteMutation = useDeleteCategory()
@@ -109,11 +112,7 @@ export default function Categories() {
     }
   ]
 
-  const filteredCategories = (data?.data || []).filter((category) => {
-    const query = searchQuery.toLowerCase().trim()
-    if (!query) return true
-    return category.name?.toLowerCase().includes(query) || category.description?.toLowerCase().includes(query)
-  })
+  const categoriesList = data?.data || []
 
   return (
     <div className="animate-fade-in">
@@ -143,7 +142,7 @@ export default function Categories() {
         )}
       </div>
 
-      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load categories: {(error as Error)?.message}</div> : <GenericTable data={filteredCategories} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load categories: {(error as Error)?.message}</div> : <GenericTable data={categoriesList} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
       <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit Category' : 'Add Category'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

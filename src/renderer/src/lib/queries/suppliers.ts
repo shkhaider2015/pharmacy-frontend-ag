@@ -13,12 +13,12 @@ export interface Supplier {
   updatedAt?: string
 }
 
-export const useSuppliers = (page: number, limit: number = 10) => {
+export const useSuppliers = (page: number, limit: number = 10, search?: string) => {
   return useQuery({
-    queryKey: ['suppliers', page, limit],
+    queryKey: ['suppliers', page, limit, search],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<Supplier>>>('/suppliers', {
-        params: { page, limit }
+        params: { page, limit, search }
       })
       return response.data.data
     }

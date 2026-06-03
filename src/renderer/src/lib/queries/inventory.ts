@@ -16,9 +16,9 @@ export interface InventoryItem {
 
 export type InventoryFilter = 'all' | 'expired' | 'near-expiry'
 
-export const useInventory = (page: number, limit: number = 10, filter: InventoryFilter = 'all') => {
+export const useInventory = (page: number, limit: number = 10, filter: InventoryFilter = 'all', search?: string) => {
   return useQuery({
-    queryKey: ['inventory', page, limit, filter],
+    queryKey: ['inventory', page, limit, filter, search],
     queryFn: async () => {
       let endpoint = '/inventory'
       if (filter === 'expired') {
@@ -28,7 +28,7 @@ export const useInventory = (page: number, limit: number = 10, filter: Inventory
       }
 
       const response = await api.get<BaseResponse<PaginatedPayload<InventoryItem>>>(endpoint, {
-        params: { page, limit }
+        params: { page, limit, search }
       })
       const data = response.data.data
       console.log('Inventory Data: ', data)

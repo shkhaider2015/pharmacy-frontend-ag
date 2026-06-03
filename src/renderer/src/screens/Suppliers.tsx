@@ -8,19 +8,22 @@ import Modal from '../components/ui/Modal'
 import ConfirmationModal from '../components/ui/ConfirmationModal'
 import { Role, SupplierStatus } from '@renderer/constants/enums'
 import { useAuthStore } from '@renderer/store/authStore'
+import { useDebounce } from '../hooks/useDebounce'
 
 export default function Suppliers() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 10
 
+  const debouncedSearch = useDebounce(searchQuery, 500)
+
   const userRole = useAuthStore((state) => state.user?.role)
-  const { data, isLoading, isError, error } = useSuppliers(page, limit)
+  const { data, isLoading, isError, error } = useSuppliers(page, limit, debouncedSearch)
   const createMutation = useCreateSupplier()
   const updateMutation = useUpdateSupplier()
   const deleteMutation = useDeleteSupplier()
   const queryClient = useQueryClient()
-
+  
   // Modal states
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -140,11 +143,7 @@ export default function Suppliers() {
     }
   ]
 
-  const filteredSuppliers = (data?.data || []).filter((supplier) => {
-    const query = searchQuery.toLowerCase().trim()
-    if (!query) return true
-    return supplier.name?.toLowerCase().includes(query) || supplier.contactPerson?.toLowerCase().includes(query) || supplier.email?.toLowerCase().includes(query) || supplier.phone?.toLowerCase().includes(query)
-  })
+  const suppliersList = data?.data || []
 
   return (
     <div className="animate-fade-in">
@@ -174,7 +173,7 @@ export default function Suppliers() {
         )}
       </div>
 
-      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load suppliers: {(error as Error)?.message}</div> : <GenericTable data={filteredSuppliers} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load suppliers: {(error as Error)?.message}</div> : <GenericTable data={suppliersList} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
       <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit Supplier' : 'Add Supplier'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

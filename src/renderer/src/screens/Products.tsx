@@ -10,14 +10,17 @@ import Modal from '../components/ui/Modal'
 import ConfirmationModal from '../components/ui/ConfirmationModal'
 import { useAuthStore } from '@renderer/store/authStore'
 import { Role } from '@renderer/constants/enums'
+import { useDebounce } from '../hooks/useDebounce'
 
 export default function Products() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 10
 
+  const debouncedSearch = useDebounce(searchQuery, 500)
+
   const userRole = useAuthStore((state) => state.user?.role)
-  const { data, isLoading, isError, error } = useProducts(page, limit)
+  const { data, isLoading, isError, error } = useProducts(page, limit, debouncedSearch)
   const { data: catData } = useCategories(1, 100)
   const { data: supData } = useSuppliers(1, 100)
 
@@ -160,11 +163,7 @@ export default function Products() {
 
   console.log('Data ', data)
 
-  const filteredProducts = (data?.data || []).filter((product) => {
-    const query = searchQuery.toLowerCase().trim()
-    if (!query) return true
-    return product.name?.toLowerCase().includes(query) || product.sku?.toLowerCase().includes(query)
-  })
+  const productsList = data?.data || []
 
   return (
     <div className="animate-fade-in">
@@ -194,7 +193,7 @@ export default function Products() {
         )}
       </div>
 
-      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load products: {(error as Error)?.message}</div> : <GenericTable data={filteredProducts} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
+      {isError ? <div style={{ color: 'var(--accent-danger)' }}>Failed to load products: {(error as Error)?.message}</div> : <GenericTable data={productsList} columns={columns} meta={data?.meta || { page, limit, total: 0, totalPages: 1 }} onPageChange={setPage} isLoading={isLoading} />}
 
       <Modal isOpen={isFormOpen} onClose={handleCloseForm} title={editingId ? 'Edit Product' : 'Add Product'}>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

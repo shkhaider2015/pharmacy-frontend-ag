@@ -12,12 +12,12 @@ export interface User {
   updatedAt?: string
 }
 
-export const useUsers = (page: number, limit: number = 10) => {
+export const useUsers = (page: number, limit: number = 10, search?: string) => {
   return useQuery({
-    queryKey: ['users', page, limit],
+    queryKey: ['users', page, limit, search],
     queryFn: async () => {
       const response = await api.get<BaseResponse<PaginatedPayload<User>>>('/users', {
-        params: { page, limit }
+        params: { page, limit, search }
       })
       return response.data.data
     }
