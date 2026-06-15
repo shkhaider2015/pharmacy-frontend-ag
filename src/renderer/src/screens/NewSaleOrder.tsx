@@ -5,6 +5,33 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { OrderType } from '@renderer/constants/enums'
 import { Trash2, Plus, ArrowLeft } from 'lucide-react'
+import { BrowserWindow } from 'electron'
+
+let rrData = {
+  id: "89e8d941-0e91-4bd7-9260-c322ef0b2a91",
+  createdAt: "2026-06-13T22:42:22.657Z",
+  updatedAt: "2026-06-13T22:42:22.657Z",
+  deletedAt: null,
+  type: "Sales",
+  status: "Pending",
+  totalAmount: 100,
+  items: [
+    {
+      id: "c3c22b7e-3655-431c-acb1-78079fa8eb93",
+      createdAt: "2026-06-13T22:42:22.657Z",
+      updatedAt: "2026-06-13T22:42:22.657Z",
+      deletedAt: null,
+      product: {
+        id: "53739a39-55e6-4a96-8b26-a0b24a17bd71"
+      },
+      quantity: 1,
+      pricePerUnit: 100,
+      manufacturingDate: null,
+      expiryDate: null,
+      batchNumber: null
+    }
+  ]
+}
 
 export default function NewSaleOrder() {
   const navigate = useNavigate()
@@ -56,13 +83,18 @@ export default function NewSaleOrder() {
 
       const createdOrder = await createMutation.mutateAsync(payload)
       await markAsCompletedMutation.mutateAsync(createdOrder.id)
-
-      toast.success('Sale Order completed successfully')
+      toast.success('Sale Order completed successfully', createdOrder)
+      console.log(createdOrder)
+      window.electron.ipcRenderer.invoke("print-receipt", createdOrder);
       setItems([{ productId: '', quantity: 1, pricePerUnit: 0 }])
     } catch (err) {
       console.error(err)
       toast.error('Failed to complete sale order')
     }
+  }
+
+  const dummyPrint = () => {
+    window.electron.ipcRenderer.invoke("print-receipt", rrData);
   }
 
   return (
@@ -86,6 +118,7 @@ export default function NewSaleOrder() {
           <button className="btn btn-primary" onClick={handleSubmit} disabled={createMutation.isPending || markAsCompletedMutation.isPending || isSubmitDisabled}>
             {createMutation.isPending || markAsCompletedMutation.isPending ? 'Processing...' : 'Complete Sale'}
           </button>
+          <button className="btn btn-primary" onClick={dummyPrint}>Dummy Print</button>
         </div>
       </div>
 
