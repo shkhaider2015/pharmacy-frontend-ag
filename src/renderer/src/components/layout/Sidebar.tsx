@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { ShoppingBag, LayoutDashboard, Users, PackageSearch, Tags, Truck, LogOut } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { Role } from '@renderer/constants/enums'
+import Logo from '../../assets/logo.png'
 
 export default function Sidebar() {
   const logout = useAuthStore((state) => state.logout)
@@ -39,10 +40,9 @@ export default function Sidebar() {
     >
       <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid var(--border-light)' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.25rem', color: 'var(--text-primary)' }}>
-          <div style={{ width: '32px', height: '32px', background: 'var(--accent-primary)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontWeight: 'bold', color: 'white' }}>P</span>
+          <div style={{ width: '160px', height: '160px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+            <img src={Logo} style={{ width: '150px', height: '150px', borderRadius: '50%' }} />
           </div>
-          PharmaDB
         </h2>
       </div>
 

@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { OrderType } from '@renderer/constants/enums'
 import { Trash2, Plus, ArrowLeft } from 'lucide-react'
-import { BrowserWindow } from 'electron'
 
 let rrData = {
   id: "89e8d941-0e91-4bd7-9260-c322ef0b2a91",

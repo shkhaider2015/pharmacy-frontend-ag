@@ -41,7 +41,7 @@ export default function Login() {
             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white' }}>P</span>
           </div>
           <h1 style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>Welcome Back</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Enter your credentials to access PharmaDB</p>
+          <p style={{ color: 'var(--text-muted)' }}>Enter your credentials to access Haider Pharma</p>
         </div>
 
         <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
