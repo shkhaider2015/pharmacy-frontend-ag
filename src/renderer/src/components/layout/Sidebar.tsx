@@ -1,7 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { ShoppingBag, LayoutDashboard, Users, PackageSearch, Tags, Truck, LogOut } from 'lucide-react'
+import { ShoppingBag, LayoutDashboard, Users, PackageSearch, Tags, Truck, LogOut, Mail } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 import { Role } from '@renderer/constants/enums'
+import api from '../../lib/api'
 import Logo from '../../assets/logo.png'
 
 export default function Sidebar() {
@@ -9,9 +10,15 @@ export default function Sidebar() {
   const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
 
-  const handleSignOut = () => {
-    logout()
-    navigate('/login')
+  const handleSignOut = async () => {
+    try {
+      await api.post('/auth/logout')
+    } catch (e) {
+      console.error('Logout error', e)
+    } finally {
+      logout()
+      navigate('/login')
+    }
   }
   const menuItems = [
     ...(user?.role === Role.Admin || user?.role === Role.Manager ? [{ name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' }] : []),
@@ -20,7 +27,8 @@ export default function Sidebar() {
     { name: 'Categories', icon: Tags, path: '/categories' },
     { name: 'Suppliers', icon: Truck, path: '/suppliers' },
     { name: 'Orders', icon: ShoppingBag, path: '/orders' },
-    ...(user?.role === Role.Admin ? [{ name: 'Users', icon: Users, path: '/users' }] : [])
+    ...(user?.role === Role.Admin ? [{ name: 'Users', icon: Users, path: '/users' }] : []),
+    ...(user?.role === Role.Admin ? [{ name: 'Email Requests', icon: Mail, path: '/email-requests' }] : [])
   ]
 
   return (

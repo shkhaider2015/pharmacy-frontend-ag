@@ -11,6 +11,9 @@ import Orders from './screens/Orders'
 import NewSaleOrder from './screens/NewSaleOrder'
 import NewPurchaseOrder from './screens/NewPurchaseOrder'
 import OrderDetails from './screens/OrderDetails'
+import Profile from './screens/Profile'
+import EmailRequests from './screens/EmailRequests'
+import UserProfile from './screens/UserProfile'
 import { useAuthStore } from './store/authStore'
 
 const ProtectedRoute = () => {
@@ -50,6 +53,9 @@ function App() {
             <Route path="orders/new-sale" element={<NewSaleOrder />} />
             <Route path="orders/new-purchase" element={<NewPurchaseOrder />} />
             <Route path="orders/:id" element={<OrderDetails />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="email-requests" element={<EmailRequests />} />
+            <Route path="users/:id" element={<UserProfile />} />
           </Route>
         </Route>
       </Routes>

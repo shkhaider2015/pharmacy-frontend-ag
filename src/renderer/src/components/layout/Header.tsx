@@ -1,5 +1,5 @@
 import { Bell, User } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 
 export default function Header() {
@@ -33,7 +33,7 @@ export default function Header() {
           <Bell size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderLeft: '1px solid var(--border-light)', paddingLeft: '1.5rem' }}>
+        <Link to="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderLeft: '1px solid var(--border-light)', paddingLeft: '1.5rem', textDecoration: 'none', color: 'inherit' }}>
           <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <User size={18} color="white" />
           </div>
@@ -41,7 +41,7 @@ export default function Header() {
             <div style={{ fontSize: '0.875rem', fontWeight: 600 }}>{user?.name || 'Admin User'}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.role || 'Administrator'}</div>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   )

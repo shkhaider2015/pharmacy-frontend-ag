@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GenericTable, { TableColumn } from '../components/ui/GenericTable'
-import { Plus, Edit2, Trash2, Shield, User as UserIcon, CheckCircle2, XCircle, Search } from 'lucide-react'
+import { Plus, Edit2, Trash2, Shield, User as UserIcon, CheckCircle2, XCircle, Search, Eye } from 'lucide-react'
 import { useUsers, User, useCreateUser, useUpdateUser, useDeleteUser } from '../lib/queries/users'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
@@ -14,6 +15,7 @@ export default function Users() {
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState('')
   const limit = 10
+  const navigate = useNavigate()
 
   const debouncedSearch = useDebounce(searchQuery, 500)
 
@@ -149,6 +151,9 @@ export default function Users() {
       header: 'Actions',
       cell: (item) => (
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-ghost" style={{ padding: '0.5rem' }} onClick={() => navigate(`/users/${item.id}`)} title="View Profile">
+            <Eye size={16} />
+          </button>
           <button className="btn btn-ghost" style={{ padding: '0.5rem' }} disabled={userRole === Role.Manager && item.role === Role.Staff} onClick={() => handleOpenForm(item)}>
             <Edit2 size={16} />
           </button>

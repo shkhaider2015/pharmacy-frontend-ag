@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { QueryClient } from '@tanstack/react-query'
 
 interface User {
   id: string
@@ -11,6 +12,7 @@ interface AuthState {
   token: string | null
   user: User | null
   setAuth: (token: string, user: User) => void
+  setUser: (user: User) => void
   logout: () => void
 }
 
@@ -22,6 +24,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
     set({ token, user })
+  },
+
+  setUser: (user: User) => {
+    localStorage.setItem('user', JSON.stringify(user))
+    set({ user })
   },
 
   logout: () => {
