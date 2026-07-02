@@ -22,7 +22,7 @@ export interface BaseResponse<T> {
 
 // Create an Axios instance
 const api = axios.create({
-  baseURL: 'http://localhost:3000/api/v1', // Connected to backend global prefix
+  baseURL: `${process.env.API_URL}${process.env.API_VERSION}`,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
